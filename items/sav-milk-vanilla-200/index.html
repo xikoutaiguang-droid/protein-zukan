@@ -120,9 +120,13 @@ svg{display:block;width:100%;height:auto}
 .embed{margin:26px 0}
 .embed .ttl{font-family:"Zen Kaku Gothic New";font-weight:900;font-size:12px;border-bottom:2px solid var(--ink);padding-bottom:7px;margin-bottom:2px}
 .reads{margin-bottom:34px}
-.read{display:block;padding:15px 0;border-bottom:1px solid var(--hair)}
+.read{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--hair);border-left:3px solid var(--whey);border-radius:2px;padding:16px 18px;margin-top:12px}
+.read:hover{border-color:var(--ink);border-left-color:var(--whey-d)}
+.read .rtx{flex:1;min-width:0}
 .read .rt2{font-family:"Zen Kaku Gothic New";font-weight:700;font-size:14.5px;line-height:1.5}
-.read .rd{font-size:11px;color:var(--sub);margin-top:4px}
+.read .rd{font-size:11px;color:var(--sub);margin-top:4px;line-height:1.7}
+.read .rgo{flex:none;display:inline-block;background:var(--ink);color:#fff;font-family:"Zen Kaku Gothic New";font-weight:700;font-size:12px;padding:9px 15px;white-space:nowrap;border-radius:2px}
+.read:hover .rgo{background:var(--whey-d)}
 footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-size:10px;color:var(--sub);line-height:1.9}
 </style>
 </head>
