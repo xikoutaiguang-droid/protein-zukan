@@ -44,6 +44,14 @@ a{color:inherit;text-decoration:none}
 .figure .side{padding-bottom:6px}
 .figure .side .u{font-family:"Zen Kaku Gothic New";font-weight:700;font-size:13px}
 .figure .side .rk2{font-size:10.5px;color:var(--sub);margin-top:2px}
+.duo{display:flex;gap:30px;flex-wrap:wrap;margin-top:24px;padding-top:20px;border-top:1px solid var(--hair)}
+.duo .cell{display:flex;align-items:flex-end;gap:9px}
+.duo .v{font-size:52px;line-height:.82;letter-spacing:-.045em}
+.duo .lab{padding-bottom:5px}
+.duo .lab .u{font-family:"Zen Kaku Gothic New";font-weight:700;font-size:12.5px;display:block}
+.duo .lab .s{font-size:10.5px;color:var(--sub);display:block;margin-top:2px}
+.per20{font-size:11px;color:var(--sub);margin-top:13px}
+.per20 b{font-family:"Archivo";font-weight:800;color:var(--ink-2);font-size:13px}
 .mkbar{height:3px;background:var(--stone);margin-top:15px;position:relative}
 .mkbar i{position:absolute;left:0;top:0;height:100%;background:var(--ink)}
 .mkbar b{position:absolute;top:-4px;width:11px;height:11px;background:var(--whey);border:2px solid var(--ink);border-radius:50%;margin-left:-5px}
@@ -93,6 +101,28 @@ svg{display:block;width:100%;height:auto}
 .lrow .pkg{margin:0;width:76px}
 .lrow.first .rank{color:var(--ink)}
 .lead{font-size:12.5px;color:var(--ink-2);margin:14px 0 4px;line-height:1.9}
+.art{padding-top:6px}
+.art h1{font-size:25px;font-weight:900;line-height:1.5;margin-bottom:12px}
+.art .meta{font-size:10.5px;color:var(--sub);border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:26px}
+.art .stand{font-size:14px;line-height:2;color:var(--ink-2);margin-bottom:30px}
+.art h2{font-size:18px;font-weight:900;margin:40px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
+.art h3{font-size:14.5px;font-weight:700;margin:28px 0 8px}
+.art p{margin-bottom:17px;line-height:2.05}
+.art strong{font-weight:700;background:linear-gradient(transparent 62%,rgba(220,230,75,.55) 62%)}
+.art ul,.art ol{margin:0 0 18px 20px}
+.art li{margin-bottom:6px;line-height:1.95}
+.art table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:12px}
+.art th{text-align:left;font-family:"Zen Kaku Gothic New";font-weight:700;border-bottom:2px solid var(--ink);padding:8px 6px}
+.art td{border-bottom:1px solid var(--hair);padding:9px 6px}
+.art td:not(:first-child),.art th:not(:first-child){text-align:right;white-space:nowrap}
+.art .cap{font-size:10.5px;color:var(--sub);margin:-6px 0 20px}
+.art hr{border:0;border-top:1px solid var(--hair);margin:34px 0}
+.embed{margin:26px 0}
+.embed .ttl{font-family:"Zen Kaku Gothic New";font-weight:900;font-size:12px;border-bottom:2px solid var(--ink);padding-bottom:7px;margin-bottom:2px}
+.reads{margin-bottom:34px}
+.read{display:block;padding:15px 0;border-bottom:1px solid var(--hair)}
+.read .rt2{font-family:"Zen Kaku Gothic New";font-weight:700;font-size:14.5px;line-height:1.5}
+.read .rd{font-size:11px;color:var(--sub);margin-top:4px}
 footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-size:10px;color:var(--sub);line-height:1.9}
 </style>
 </head>
@@ -112,13 +142,20 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tags"><span class="tg">コンビニで買える</span><span class="tg">シェイカー不要</span><span class="tg">持ち運び向き</span><span class="tg">出張向き</span><span class="tg">ミックス</span></div>
 </div>
 </div>
-<div class="figure">
-<div class="big n">280</div>
-<div class="side">
-<div class="u">円 / 1本あたり</div>
-<div class="rk2">RTD11商品中 <span class="n">9</span>位</div>
+<div class="duo">
+<div class="cell">
+<div class="v n">18</div>
+<div class="lab"><span class="u">g</span>
+<span class="s">タンパク質 / 1本</span></div>
+</div>
+<div class="cell">
+<div class="v n">280</div>
+<div class="lab"><span class="u">円</span>
+<span class="s">1本あたり</span></div>
 </div>
 </div>
+<div class="per20">パウダー換算 1杯 <b>311</b>円</div>
+<div class="per20">ドリンク11商品中 <b>9</b>位（1本あたりの安い順）</div>
 <div class="mkbar"><i style="width:73%"></i><b style="left:73%"></b></div>
 <div class="mklab"><span>いちばん安い 130円</span><span>いちばん高い 335円</span></div>
 </div>
