@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>このサイトについて｜プロテイン図鑑</title>
+<meta name="description" content="プロテイン図鑑の運営者情報と、価格の集め方・記事の書き方についての方針です。">
+<link rel="canonical" href="https://proteinzukan.com/about/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800;900&family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F7F6F2;--ink:#131518;--ink-2:#3A3F45;--sub:#8A8F94;--hair:#E2E0D9;--stone:#EDEBE4;--whey:#DCE64B;--whey-d:#93A00E}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:"Noto Sans JP",system-ui,sans-serif;font-size:13.5px;line-height:1.8;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:"Zen Kaku Gothic New",sans-serif;letter-spacing:-.01em}
+.n{font-family:"Archivo",sans-serif;font-weight:800;font-feature-settings:"tnum";letter-spacing:-.03em}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:660px;margin:0 auto;padding:0 20px 80px}
+.hd{display:flex;align-items:flex-end;justify-content:space-between;padding:24px 0 15px;border-bottom:2px solid var(--ink);margin-bottom:20px}
+.logo{font-family:"Zen Kaku Gothic New";font-weight:900;font-size:18px;line-height:1}
+.logo small{display:block;font-family:"Noto Sans JP";font-weight:400;font-size:10px;letter-spacing:.04em;color:var(--sub);margin-top:6px}
+.upd{text-align:right;font-size:10px;color:var(--sub);line-height:1.6}
+.upd b{display:block;color:var(--ink);font-weight:700;font-size:11.5px;font-family:"Zen Kaku Gothic New"}
+.crumb{font-size:10.5px;color:var(--sub);margin-bottom:11px}
+.pkg{aspect-ratio:3/4;border-radius:2px;display:flex;flex-direction:column;justify-content:flex-end;padding:9px;color:#fff;font-family:"Archivo";font-weight:600;font-size:8.5px;letter-spacing:.1em;line-height:1.5}
+.pkg.cocoa{background:linear-gradient(155deg,#7E5433,#3E2612)}
+.pkg.van{background:linear-gradient(155deg,#EFE2BE,#BFA469);color:#4A3B1C}
+.pkg.straw{background:linear-gradient(155deg,#E7A0AF,#B84763)}
+.pkg.milk{background:linear-gradient(155deg,#F2F3F5,#C4C9CF);color:#3B4249}
+.pkg.choco{background:linear-gradient(155deg,#5E3D22,#2C1B0E)}
+.pkg.wpi{background:linear-gradient(155deg,#E4E9C4,#B3BC63);color:#3D4212}
+.pkg.photo{background:#fff;border:1px solid var(--hair);padding:7px;color:inherit}
+.pkg.photo img{width:100%;height:100%;object-fit:contain;display:block}
+.phero{padding:6px 0 26px;border-bottom:2px solid var(--ink)}
+.phero .grid{display:grid;grid-template-columns:114px 1fr;gap:20px;align-items:start}
+.phero .pkg{width:114px;margin:0}
+.phero h1{font-size:20px;font-weight:900;line-height:1.42}
+.spec{font-size:10.5px;color:var(--sub);margin-top:7px;line-height:1.7}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+.tg{font-size:10px;color:var(--ink-2);border:1px solid var(--hair);padding:1px 8px;border-radius:2px}
+.figure{display:flex;align-items:flex-end;gap:13px;margin-top:24px;padding-top:20px;border-top:1px solid var(--hair)}
+.figure .big{font-size:64px;line-height:.82;letter-spacing:-.045em}
+.figure .side{padding-bottom:6px}
+.figure .side .u{font-family:"Zen Kaku Gothic New";font-weight:700;font-size:13px}
+.figure .side .rk2{font-size:10.5px;color:var(--sub);margin-top:2px}
+.duo{display:flex;gap:30px;flex-wrap:wrap;margin-top:24px;padding-top:20px;border-top:1px solid var(--hair)}
+.duo .cell{display:flex;align-items:flex-end;gap:9px}
+.duo .v{font-size:52px;line-height:.82;letter-spacing:-.045em}
+.duo .lab{padding-bottom:5px}
+.duo .lab .u{font-family:"Zen Kaku Gothic New";font-weight:700;font-size:12.5px;display:block}
+.duo .lab .s{font-size:10.5px;color:var(--sub);display:block;margin-top:2px}
+.per20{font-size:11px;color:var(--sub);margin-top:13px}
+.per20 b{font-family:"Archivo";font-weight:800;color:var(--ink-2);font-size:13px}
+.mkbar{height:3px;background:var(--stone);margin-top:15px;position:relative}
+.mkbar i{position:absolute;left:0;top:0;height:100%;background:var(--ink)}
+.mkbar b{position:absolute;top:-4px;width:11px;height:11px;background:var(--whey);border:2px solid var(--ink);border-radius:50%;margin-left:-5px}
+.mklab{display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-top:8px}
+section{margin-top:34px}
+.sh{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:2px}
+.sh h2{font-size:16px;font-weight:900}
+.sh span{font-size:10.5px;color:var(--sub)}
+.shop{display:flex;align-items:center;gap:12px;padding:15px 0;border-bottom:1px solid var(--hair)}
+.shop.best{background:linear-gradient(90deg,rgba(220,230,75,.3),transparent 78%);margin:0 -12px;padding:15px 12px}
+.shop .s1{font-family:"Zen Kaku Gothic New";font-weight:700;font-size:13.5px}
+.shop .s1 em{font-style:normal;font-size:10px;background:var(--ink);color:var(--whey);padding:2px 6px;margin-left:7px;vertical-align:2px}
+.shop .s2{font-size:10px;color:var(--sub)}
+.shop .pr{margin-left:auto;text-align:right;margin-right:4px}
+.shop .pr .v{font-size:23px}
+.shop .pr .u{font-size:10.5px;font-weight:500;color:var(--sub);margin-left:1px}
+.btn{display:inline-block;background:var(--ink);color:#fff;font-family:"Zen Kaku Gothic New";font-weight:700;font-size:12px;padding:10px 17px;white-space:nowrap;border-radius:2px}
+.btn:hover{background:var(--whey-d)}
+.btn.acc{background:var(--whey);color:var(--ink)}
+.btn.acc:hover{background:var(--ink);color:var(--whey)}
+.chart{margin-top:32px}
+.chart .ch{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:14px}
+.chart .ch b{font-family:"Zen Kaku Gothic New";font-size:16px;font-weight:900}
+.chart .ch span{font-size:10.5px;color:var(--sub)}
+svg{display:block;width:100%;height:auto}
+.nodata{font-size:11px;color:var(--sub);background:var(--stone);padding:14px 16px}
+.note{font-size:10.5px;color:var(--sub);margin-top:8px}
+.auto{font-size:10.5px;color:var(--sub);border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);padding:9px 0;margin:20px 0}
+.row{display:grid;grid-template-columns:76px 1fr;gap:16px;padding:20px 0;border-bottom:1px solid var(--hair)}
+.row .pkg{margin:0;width:76px}
+.rtop{margin-bottom:6px}
+.mark{display:inline-block;font-family:"Zen Kaku Gothic New";font-weight:700;font-size:10.5px;background:var(--whey);color:var(--ink);padding:2px 8px}
+.rname{font-family:"Zen Kaku Gothic New";font-weight:700;font-size:14.5px;line-height:1.45}
+.rbrand{font-size:10.5px;color:var(--sub);margin:2px 0 9px}
+.pl{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:10px}
+.cup{display:flex;align-items:baseline;gap:3px}
+.cup .v{font-size:28px;line-height:.9}
+.cup .u{font-size:11px;font-weight:500;color:var(--ink-2);font-family:"Zen Kaku Gothic New"}
+.tot{font-size:10.5px;color:var(--sub);margin-top:4px}
+.tot b{font-family:"Archivo";font-weight:800;color:var(--ink-2);font-size:12.5px}
+.exp{background:var(--stone);padding:17px 19px;margin-top:26px}
+.exp h3{font-family:"Zen Kaku Gothic New";font-weight:900;font-size:12px;letter-spacing:.02em;margin-bottom:7px}
+.exp p{font-size:12.5px;line-height:1.9;white-space:pre-wrap}
+.exp .who{font-size:10px;color:var(--sub);margin-top:9px}
+.rank{font-family:"Archivo";font-weight:900;font-size:15px;color:var(--sub);width:26px;flex:none;padding-top:2px}
+.lrow{display:grid;grid-template-columns:26px 76px 1fr;gap:14px;padding:20px 0;border-bottom:1px solid var(--hair);align-items:start}
+.lrow .pkg{margin:0;width:76px}
+.lrow.first .rank{color:var(--ink)}
+.lead{font-size:12.5px;color:var(--ink-2);margin:14px 0 4px;line-height:1.9}
+.art{padding-top:6px}
+.art h1{font-size:25px;font-weight:900;line-height:1.5;margin-bottom:12px}
+.art .meta{font-size:10.5px;color:var(--sub);border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:26px}
+.art .stand{font-size:14px;line-height:2;color:var(--ink-2);margin-bottom:30px}
+.art h2{font-size:18px;font-weight:900;margin:40px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
+.art h3{font-size:14.5px;font-weight:700;margin:28px 0 8px}
+.art p{margin-bottom:17px;line-height:2.05}
+.art strong{font-weight:700;background:linear-gradient(transparent 62%,rgba(220,230,75,.55) 62%)}
+.art ul,.art ol{margin:0 0 18px 20px}
+.art li{margin-bottom:6px;line-height:1.95}
+.art table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:12px}
+.art th{text-align:left;font-family:"Zen Kaku Gothic New";font-weight:700;border-bottom:2px solid var(--ink);padding:8px 6px}
+.art td{border-bottom:1px solid var(--hair);padding:9px 6px}
+.art td:not(:first-child),.art th:not(:first-child){text-align:right;white-space:nowrap}
+.art .cap{font-size:10.5px;color:var(--sub);margin:-6px 0 20px}
+.art hr{border:0;border-top:1px solid var(--hair);margin:34px 0}
+.embed{margin:26px 0}
+.embed .ttl{font-family:"Zen Kaku Gothic New";font-weight:900;font-size:12px;border-bottom:2px solid var(--ink);padding-bottom:7px;margin-bottom:2px}
+.reads{margin-bottom:34px}
+.read{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--hair);border-left:3px solid var(--whey);border-radius:2px;padding:16px 18px;margin-top:12px}
+.read:hover{border-color:var(--ink);border-left-color:var(--whey-d)}
+.read .rtx{flex:1;min-width:0}
+.read .rt2{font-family:"Zen Kaku Gothic New";font-weight:700;font-size:14.5px;line-height:1.5}
+.read .rd{font-size:11px;color:var(--sub);margin-top:4px;line-height:1.7}
+.read .rgo{flex:none;display:inline-block;background:var(--ink);color:#fff;font-family:"Zen Kaku Gothic New";font-weight:700;font-size:12px;padding:9px 15px;white-space:nowrap;border-radius:2px}
+.read:hover .rgo{background:var(--whey-d)}
+.more{display:block;text-align:center;font-family:"Zen Kaku Gothic New";font-weight:700;font-size:12.5px;color:var(--ink-2);border:1px solid var(--hair);border-radius:2px;padding:13px;margin-top:12px}
+.more:hover{border-color:var(--ink);color:var(--ink)}
+footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-size:10px;color:var(--sub);line-height:1.9}
+.fnav{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--hair)}
+.fnav a{font-family:"Zen Kaku Gothic New";font-weight:700;font-size:11px;color:var(--ink-2)}
+.fnav a:hover{color:var(--ink)}
+</style>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-D3K1HK06SY"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-D3K1HK06SY");</script>
+</head>
+<body>
+<div class="wrap">
+<div class="hd">
+<div class="logo"><a href="/">プロテイン図鑑</a><small>毎日更新のプロテイン価格比較</small></div>
+</div>
+<div class="crumb"><a href="/">トップ</a> ／ このサイトについて</div>
+<article class="art">
+<h1>このサイトについて</h1>
+<div class="meta">プロテイン図鑑の運営方針</div>
+<p>プロテインは、容量も1食分の量も、含まれるタンパク質の量も商品ごとに違います。袋の値段だけを並べても比べられません。</p>
+<p>このサイトは、すべての商品を<strong>タンパク質20gあたりの価格</strong>に換算して並べています。同じものさしに乗せることで、容量の違う商品どうしでも比べられるようにしています。</p>
+<h2>運営者</h2>
+<p>図鑑の中の人</p>
+<p>プロテインを何年か飲んでいる個人が運営しています。栄養やトレーニングの専門家ではありません。書いているのは、自分が買って飲んだ範囲のことだけです。</p>
+<h2>価格について</h2>
+<p>価格は楽天市場のAPIから毎日6時に取得しています。表示時点で在庫や価格が変わっている場合があります。</p>
+<p>楽天の価格を載せているのは毎日自動で取得できるためで、<strong>最安値を保証するものではありません。</strong>公式サイトのほうが安いこともあります。</p>
+<p>成分値はメーカーの公表値です。購入前にパッケージの表示をご確認ください。</p>
+<h2>記事について</h2>
+<ul>
+<li>体験を書くのは、実際に使った商品だけにしています</li>
+<li>記事本文に価格は書きません。商品カードは毎日最新の価格に描き直されます</li>
+<li>飲めばどうなる、といった効果の話は書きません</li>
+</ul>
+<p>作った経緯や、これまで飲んできたものについては<a href="/about-zukan/">こちらの記事</a>に書いています。</p>
+<h2>広告について</h2>
+<p>当サイトはアフィリエイトプログラムを利用しており、商品ページのリンクから収益を得る場合があります。ただし、順位や掲載内容は報酬額によって変えていません。並び順は価格から機械的に決まります。</p>
+<h2>お問い合わせ</h2>
+<p>掲載内容の誤りのご指摘や、掲載商品のご要望は<a href="https://forms.gle/ZYt9hZuNDHELT76C7" target="_blank" rel="noopener">お問い合わせフォーム</a>からお願いします。</p>
+<p>個人で運営しているため、すべてのお問い合わせに返信できるとは限りません。</p>
+</article>
+<footer>
+価格は楽天市場のAPIから毎日6時に取得しています。<br>
+成分値はメーカー公表値です。購入前にパッケージの表示をご確認ください。<br>
+当サイトはアフィリエイトプログラムを利用しています。
+<nav class="fnav"><a href="/">トップ</a><a href="/articles/">読みもの</a><a href="/about/">このサイトについて</a><a href="/privacy/">プライバシーポリシー</a><a href="https://forms.gle/ZYt9hZuNDHELT76C7" target="_blank" rel="noopener">お問い合わせ</a></nav>
+</footer>
+</div>
+</body>
+</html>
