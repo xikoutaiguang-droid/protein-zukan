@@ -133,6 +133,10 @@ svg{display:block;width:100%;height:auto}
 .read .rd{font-size:11px;color:var(--sub);margin-top:4px;line-height:1.7}
 .read .rgo{flex:none;display:inline-block;background:var(--ink);color:#fff;font-family:"Zen Kaku Gothic New";font-weight:700;font-size:12px;padding:9px 15px;white-space:nowrap;border-radius:2px}
 .read:hover .rgo{background:var(--whey-d)}
+.sortb{display:flex;gap:6px;flex-wrap:wrap}
+.sb{font-family:"Zen Kaku Gothic New";font-weight:700;font-size:10.5px;color:var(--sub);background:#fff;border:1px solid var(--hair);border-radius:2px;padding:5px 10px;white-space:nowrap}
+.sb:hover{border-color:var(--ink);color:var(--ink)}
+.sb.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .sibs{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .sib{display:block;background:#fff;border:1px solid var(--hair);border-radius:2px;padding:10px 13px;min-width:104px}
 .sib:hover{border-color:var(--ink)}
@@ -180,7 +184,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 </section>
 <section data-form="powder">
 <div class="sh"><h2>パウダー</h2><span>タンパク質20gあたりの安い順</span></div>
-<div class="lrow first" data-brand="savas" data-method="soy">
+<div class="lrow first" data-brand="savas" data-method="soy" data-price="126.9" data-protein="20">
 <div class="rank n">1</div>
 <a class="pkg photo" href="/items/sav-soy-cocoa-900/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/p-tano/cabinet/shohin600_03/666-4572.jpg?_ex=200x200" alt="ザバス ソイプロテイン100 ココア" loading="lazy" decoding="async"></a>
 <div>
@@ -191,7 +195,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">楽天市場 <b>4,078</b>円</div>
 </div><a class="btn" href="/items/sav-soy-cocoa-900/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="x-plosion" data-method="wpc">
+<div class="lrow" data-brand="x-plosion" data-method="wpc" data-price="131.3" data-protein="21">
 <div class="rank n">2</div>
 <a class="pkg photo" href="/items/exp-whey-milkchoco-3000/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/x-plosion/cabinet/yec/11362306/241227_10000019.jpg?_ex=200x200" alt="エクスプロージョン ホエイプロテイン ミルクチョコレート" loading="lazy" decoding="async"></a>
 <div>
@@ -202,7 +206,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">楽天市場 <b>13,790</b>円</div>
 </div><a class="btn" href="/items/exp-whey-milkchoco-3000/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="bulksports" data-method="wpc">
+<div class="lrow" data-brand="bulksports" data-method="wpc" data-price="147.1" data-protein="21">
 <div class="rank n">3</div>
 <a class="pkg photo" href="/items/bulk-bigwhey-1000/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/boundless/cabinet/10359033/12948747/4589799182488-1.jpg?_ex=200x200" alt="バルクスポーツ ビッグホエイ ダブルチョコレートチップ" loading="lazy" decoding="async"></a>
 <div>
@@ -213,7 +217,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">楽天市場 <b>4,680</b>円</div>
 </div><a class="btn" href="/items/bulk-bigwhey-1000/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="savas" data-method="wpc">
+<div class="lrow" data-brand="savas" data-method="wpc" data-price="157.6" data-protein="19.5">
 <div class="rank n">4</div>
 <a class="pkg photo" href="/items/sav-whey-chocolate-980/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/sundrug/cabinet/5/4902777302102.jpg?_ex=200x200" alt="ザバス ホエイプロテイン100 リッチショコラ" loading="lazy" decoding="async"></a>
 <div>
@@ -224,7 +228,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">楽天市場 <b>5,379</b>円</div>
 </div><a class="btn" href="/items/sav-whey-chocolate-980/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="savas" data-method="wpc">
+<div class="lrow" data-brand="savas" data-method="wpc" data-price="159.1" data-protein="20">
 <div class="rank n">5</div>
 <a class="pkg photo" href="/items/sav-whey-vanilla-980/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/rugia/cabinet/onesell129/rge3b798dced.jpg?_ex=200x200" alt="ザバス ホエイプロテイン100 バニラアイスクリーム" loading="lazy" decoding="async"></a>
 <div>
@@ -235,7 +239,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">楽天市場 <b>5,568</b>円</div>
 </div><a class="btn" href="/items/sav-whey-vanilla-980/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="dns" data-method="wpc">
+<div class="lrow" data-brand="dns" data-method="wpc" data-price="159.8" data-protein="26.5">
 <div class="rank n">6</div>
 <a class="pkg photo" href="/items/dns-whey100-2000/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/kenkoex/cabinet/1326_15/1326-4573559883326_1.jpg?_ex=200x200" alt="DNS プロテインホエイ100 カフェオレ" loading="lazy" decoding="async"></a>
 <div>
@@ -246,7 +250,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">楽天市場 <b>12,100</b>円</div>
 </div><a class="btn" href="/items/dns-whey100-2000/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="dns" data-method="wpc">
+<div class="lrow" data-brand="dns" data-method="wpc" data-price="175.3" data-protein="26.5">
 <div class="rank n">7</div>
 <a class="pkg photo" href="/items/dns-whey100-630/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/kenkoex/cabinet/1326_15/1326-4573559883326_1.jpg?_ex=200x200" alt="DNS プロテインホエイ100 カフェオレ" loading="lazy" decoding="async"></a>
 <div>
@@ -257,7 +261,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">楽天市場 <b>4,180</b>円</div>
 </div><a class="btn" href="/items/dns-whey100-630/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="savas" data-method="wpc">
+<div class="lrow" data-brand="savas" data-method="wpc" data-price="187.7" data-protein="20">
 <div class="rank n">8</div>
 <a class="pkg photo" href="/items/sav-whey-cocoa-980/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/rainbow-arch/cabinet/imagepic/systempic267/raw0gsyr5nns1.jpg?_ex=200x200" alt="ザバス ホエイプロテイン100 ココア" loading="lazy" decoding="async"></a>
 <div>
@@ -268,7 +272,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">楽天市場 <b>6,570</b>円</div>
 </div><a class="btn" href="/items/sav-whey-cocoa-980/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="dns" data-method="wpc">
+<div class="lrow" data-brand="dns" data-method="wpc" data-price="207.5" data-protein="26.5">
 <div class="rank n">9</div>
 <a class="pkg photo" href="/items/dns-whey100-315/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/kenkoex/cabinet/1326_15/1326-4573559883326_1.jpg?_ex=200x200" alt="DNS プロテインホエイ100 カフェオレ" loading="lazy" decoding="async"></a>
 <div>
@@ -279,7 +283,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">楽天市場 <b>2,475</b>円</div>
 </div><a class="btn" href="/items/dns-whey100-315/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="gold-standard" data-method="wpc">
+<div class="lrow" data-brand="gold-standard" data-method="wpc" data-price="212.4" data-protein="24">
 <div class="rank n">10</div>
 <a class="pkg photo" href="/items/on-goldstandard-choco/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/iherb-official/cabinet/08739184/10215617/5986581_01.jpg?_ex=200x200" alt="ゴールドスタンダード 100%ホエイ ダブルリッチチョコレート" loading="lazy" decoding="async"></a>
 <div>
@@ -290,7 +294,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">楽天市場 <b>7,224</b>円</div>
 </div><a class="btn" href="/items/on-goldstandard-choco/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="valx" data-method="wpc">
+<div class="lrow" data-brand="valx" data-method="wpc" data-price="275.7" data-protein="21.8">
 <div class="rank n">11</div>
 <a class="pkg photo" href="/items/valx-whey-matcha-1000/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/1000cut-carpediem/cabinet/rakuk400_0006/b09ff74zrd00.jpg?_ex=200x200" alt="VALX ホエイプロテイン 抹茶" loading="lazy" decoding="async"></a>
 <div>
@@ -303,8 +307,8 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 </div></div>
 </section>
 <section data-form="rtd">
-<div class="sh"><h2>ドリンク</h2><span>1本あたりの安い順</span></div>
-<div class="lrow first" data-brand="glico" data-method="mix">
+<div class="sh"><h2>ドリンク</h2><div class="sortb"><a class="sb on" href="#" data-sort="price">1本あたりの安い順</a><a class="sb" href="#" data-sort="protein">タンパク質が多い順</a></div></div>
+<div class="lrow first" data-brand="glico" data-method="mix" data-price="119" data-protein="10">
 <div class="rank n">1</div>
 <a class="pkg photo" href="/items/glico-drink-almondkoka/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/soukaidrink/cabinet/604/4901005007604.jpg?_ex=200x200" alt="グリコ アーモンド効果 PROTEIN ナッツミックス" loading="lazy" decoding="async"></a>
 <div>
@@ -315,7 +319,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">タンパク質 <b>10</b>g／本　パウダー換算 1杯 <b>238</b>円</div>
 </div><a class="btn" href="/items/glico-drink-almondkoka/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="savas" data-method="mix">
+<div class="lrow" data-brand="savas" data-method="mix" data-price="130" data-protein="15">
 <div class="rank n">2</div>
 <a class="pkg photo" href="/items/sav-milk-banana-200/"><img src="https://thumbnail.image.rakuten.co.jp/@0_gold/sankin-asaichi/images/dhi00073.jpg?_ex=200x200" alt="ザバス ミルクプロテイン 脂肪0 バナナ" loading="lazy" decoding="async"></a>
 <div>
@@ -326,7 +330,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">タンパク質 <b>15</b>g／本　パウダー換算 1杯 <b>173</b>円</div>
 </div><a class="btn" href="/items/sav-milk-banana-200/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="savas" data-method="mix">
+<div class="lrow" data-brand="savas" data-method="mix" data-price="141" data-protein="15">
 <div class="rank n">3</div>
 <a class="pkg photo" href="/items/sav-milk-vanilla-200/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/sundrug/cabinet/5/4902705014558.jpg?_ex=200x200" alt="ザバス ミルクプロテイン 脂肪0 バニラ" loading="lazy" decoding="async"></a>
 <div>
@@ -337,7 +341,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">タンパク質 <b>15</b>g／本　パウダー換算 1杯 <b>188</b>円</div>
 </div><a class="btn" href="/items/sav-milk-vanilla-200/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="savas" data-method="mix">
+<div class="lrow" data-brand="savas" data-method="mix" data-price="163" data-protein="20">
 <div class="rank n">4</div>
 <a class="pkg photo" href="/items/sav-milk-chocolate-200/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/sg-line/cabinet/12089471/12433764/imgrc0142886997.jpg?_ex=200x200" alt="ザバス ミルクプロテイン 脂肪0 チョコレート" loading="lazy" decoding="async"></a>
 <div>
@@ -348,7 +352,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">タンパク質 <b>20</b>g／本　パウダー換算 1杯 <b>163</b>円</div>
 </div><a class="btn" href="/items/sav-milk-chocolate-200/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="savas" data-method="mix">
+<div class="lrow" data-brand="savas" data-method="mix" data-price="216" data-protein="15">
 <div class="rank n">5</div>
 <a class="pkg photo" href="/items/sav-milk-yogurt-430/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/drinkman/cabinet/newitem_m/01-771-8.jpg?_ex=200x200" alt="ザバス ミルクプロテイン 脂肪0 ヨーグルト" loading="lazy" decoding="async"></a>
 <div>
@@ -359,7 +363,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">タンパク質 <b>15</b>g／本　パウダー換算 1杯 <b>288</b>円</div>
 </div><a class="btn" href="/items/sav-milk-yogurt-430/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="oikos" data-method="mix">
+<div class="lrow" data-brand="oikos" data-method="mix" data-price="233" data-protein="18">
 <div class="rank n">6</div>
 <a class="pkg photo" href="/items/oikos-milk-cafetratte/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/smilespoon/cabinet/04/7183304-0003_1.jpg?_ex=200x200" alt="オイコス プロテインドリンク カフェラテ" loading="lazy" decoding="async"></a>
 <div>
@@ -370,7 +374,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">タンパク質 <b>18</b>g／本　パウダー換算 1杯 <b>259</b>円</div>
 </div><a class="btn" href="/items/oikos-milk-cafetratte/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="oikos" data-method="mix">
+<div class="lrow" data-brand="oikos" data-method="mix" data-price="233" data-protein="18">
 <div class="rank n">7</div>
 <a class="pkg photo" href="/items/oikos-milk-cacao/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/smilespoon/cabinet/16/7148116-0003_1.jpg?_ex=200x200" alt="オイコス プロテインドリンク カカオ" loading="lazy" decoding="async"></a>
 <div>
@@ -381,7 +385,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">タンパク質 <b>18</b>g／本　パウダー換算 1杯 <b>259</b>円</div>
 </div><a class="btn" href="/items/oikos-milk-cacao/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="oikos" data-method="mix">
+<div class="lrow" data-brand="oikos" data-method="mix" data-price="271" data-protein="18">
 <div class="rank n">8</div>
 <a class="pkg photo" href="/items/oikos-milk-strawberry/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/smilespoon/cabinet/81/7242581-0006_1.jpg?_ex=200x200" alt="オイコス プロテインドリンク ストロベリー" loading="lazy" decoding="async"></a>
 <div>
@@ -392,7 +396,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">タンパク質 <b>18</b>g／本　パウダー換算 1杯 <b>301</b>円</div>
 </div><a class="btn" href="/items/oikos-milk-strawberry/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="oikos" data-method="mix">
+<div class="lrow" data-brand="oikos" data-method="mix" data-price="280" data-protein="18">
 <div class="rank n">9</div>
 <a class="pkg photo" href="/items/oikos-milk-banana/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/smilespoon/cabinet/41/7214341-0006_1.jpg?_ex=200x200" alt="オイコス プロテインドリンク バナナ" loading="lazy" decoding="async"></a>
 <div>
@@ -403,7 +407,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">タンパク質 <b>18</b>g／本　パウダー換算 1杯 <b>311</b>円</div>
 </div><a class="btn" href="/items/oikos-milk-banana/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="oikos" data-method="mix">
+<div class="lrow" data-brand="oikos" data-method="mix" data-price="280" data-protein="18">
 <div class="rank n">10</div>
 <a class="pkg photo" href="/items/oikos-milk-hazelnutchoco/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/drink-market/cabinet/202603_23/b533-73-t-1.jpg?_ex=200x200" alt="オイコス プロテインドリンク ヘーゼルナッツ＆チョコ" loading="lazy" decoding="async"></a>
 <div>
@@ -414,7 +418,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">タンパク質 <b>18</b>g／本　パウダー換算 1杯 <b>311</b>円</div>
 </div><a class="btn" href="/items/oikos-milk-hazelnutchoco/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="savas" data-method="mix">
+<div class="lrow" data-brand="savas" data-method="mix" data-price="298" data-protein="30">
 <div class="rank n">11</div>
 <a class="pkg photo" href="/items/sav-milk-cocoa-430/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/drinkman/cabinet/newitem_m/01-729-8.jpg?_ex=200x200" alt="ザバス ミルクプロテイン 脂肪0 ココア" loading="lazy" decoding="async"></a>
 <div>
@@ -425,7 +429,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">タンパク質 <b>30</b>g／本　パウダー換算 1杯 <b>199</b>円</div>
 </div><a class="btn" href="/items/sav-milk-cocoa-430/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="oikos" data-method="mix">
+<div class="lrow" data-brand="oikos" data-method="mix" data-price="320" data-protein="25">
 <div class="rank n">12</div>
 <a class="pkg photo" href="/items/oikos-pro-vanilla/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/otodokestore-plus/cabinet/choice2/8670.jpg?_ex=200x200" alt="オイコス プロテインドリンク PRO リッチバニラ" loading="lazy" decoding="async"></a>
 <div>
@@ -436,7 +440,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <div class="tot">タンパク質 <b>25</b>g／本　パウダー換算 1杯 <b>256</b>円</div>
 </div><a class="btn" href="/items/oikos-pro-vanilla/">くわしく</a></div>
 </div></div>
-<div class="lrow" data-brand="savas" data-method="mix">
+<div class="lrow" data-brand="savas" data-method="mix" data-price="335" data-protein="30">
 <div class="rank n">13</div>
 <a class="pkg photo" href="/items/sav-milk-cafelatte-430/"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/drinkman/cabinet/newitem_m/01-729-8.jpg?_ex=200x200" alt="ザバス ミルクプロテイン 脂肪0 カフェラテ" loading="lazy" decoding="async"></a>
 <div>
@@ -458,15 +462,29 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 <script>
 (function(){
 var chips=[].slice.call(document.querySelectorAll(".chip[data-filter]"));
+var sorts=[].slice.call(document.querySelectorAll(".sb[data-sort]"));
 var secs=[].slice.call(document.querySelectorAll("section[data-form]"));
-if(!chips.length||!secs.length)return;
+if(!secs.length)return;
 var all=null;
 chips.forEach(function(c){if(c.getAttribute("data-filter")==="all")all=c;});
-function apply(kind,val){
+var fk="all",fv="",sm="price";
+function num(el,name){return parseFloat(el.getAttribute(name))||0;}
+function render(){
 secs.forEach(function(s){
+var rows=[].slice.call(s.querySelectorAll(".lrow"));
+if(s.getAttribute("data-form")==="rtd"){
+rows.sort(function(a,b){
+if(sm==="protein"){
+var d=num(b,"data-protein")-num(a,"data-protein");
+if(d)return d;
+}
+return num(a,"data-price")-num(b,"data-price");
+});
+rows.forEach(function(r){s.appendChild(r);});
+}
 var vis=0;
-[].slice.call(s.querySelectorAll(".lrow")).forEach(function(r){
-var ok=(kind==="all")||(r.getAttribute("data-"+kind)===val);
+rows.forEach(function(r){
+var ok=(fk==="all")||(r.getAttribute("data-"+fk)===fv);
 r.style.display=ok?"":"none";
 if(ok){vis++;
 var rk=r.querySelector(".rank");if(rk)rk.textContent=vis;
@@ -475,15 +493,22 @@ r.className=(vis===1)?"lrow first":"lrow";}
 s.style.display=vis?"":"none";
 });
 }
-function mark(c){chips.forEach(function(x){x.classList.remove("on");});if(c)c.classList.add("on");}
-function reset(){mark(all);apply("all","");}
+function mark(list,c){list.forEach(function(x){x.classList.remove("on");});if(c)c.classList.add("on");}
 chips.forEach(function(c){
 c.addEventListener("click",function(ev){
 ev.preventDefault();
-if(c===all){reset();return;}
-if(c.classList.contains("on")){reset();return;}
-mark(c);
-apply(c.getAttribute("data-filter"),c.getAttribute("data-value"));
+var off=(c!==all)&&c.classList.contains("on");
+if(c===all||off){fk="all";fv="";mark(chips,all);}
+else{fk=c.getAttribute("data-filter");fv=c.getAttribute("data-value");mark(chips,c);}
+render();
+});
+});
+sorts.forEach(function(b){
+b.addEventListener("click",function(ev){
+ev.preventDefault();
+sm=b.getAttribute("data-sort");
+mark(sorts,b);
+render();
 });
 });
 })();
