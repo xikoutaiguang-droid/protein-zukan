@@ -167,7 +167,7 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 </section>
 <section>
 <div class="sh"><h2>ブランドから探す</h2><span>押すと下の一覧が絞り込まれます</span></div>
-<div class="chips"><a class="chip" href="/brands/savas/" data-filter="brand" data-value="savas">ザバス<em>10</em></a><a class="chip" href="/brands/oikos/" data-filter="brand" data-value="oikos">オイコス<em>6</em></a><a class="chip" href="/brands/dns/" data-filter="brand" data-value="dns">DNS<em>3</em></a></div>
+<div class="chips"><a class="chip on" href="/" data-filter="all" data-value="">すべて<em>24</em></a><a class="chip" href="/brands/savas/" data-filter="brand" data-value="savas">ザバス<em>10</em></a><a class="chip" href="/brands/oikos/" data-filter="brand" data-value="oikos">オイコス<em>6</em></a><a class="chip" href="/brands/dns/" data-filter="brand" data-value="dns">DNS<em>3</em></a></div>
 <div class="chiplab">製法から探す</div>
 <div class="chips"><a class="chip" href="/methods/mix/" data-filter="method" data-value="mix">ミックス<em>13</em></a><a class="chip" href="/methods/wpc/" data-filter="method" data-value="wpc">WPC<em>10</em></a></div>
 </section>
@@ -453,6 +453,8 @@ footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-siz
 var chips=[].slice.call(document.querySelectorAll(".chip[data-filter]"));
 var secs=[].slice.call(document.querySelectorAll("section[data-form]"));
 if(!chips.length||!secs.length)return;
+var all=null;
+chips.forEach(function(c){if(c.getAttribute("data-filter")==="all")all=c;});
 function apply(kind,val){
 secs.forEach(function(s){
 var vis=0;
@@ -461,18 +463,19 @@ var ok=(kind==="all")||(r.getAttribute("data-"+kind)===val);
 r.style.display=ok?"":"none";
 if(ok){vis++;
 var rk=r.querySelector(".rank");if(rk)rk.textContent=vis;
-if(vis===1){r.className="lrow first";}else{r.className="lrow";}}
+r.className=(vis===1)?"lrow first":"lrow";}
 });
 s.style.display=vis?"":"none";
 });
 }
+function mark(c){chips.forEach(function(x){x.classList.remove("on");});if(c)c.classList.add("on");}
+function reset(){mark(all);apply("all","");}
 chips.forEach(function(c){
 c.addEventListener("click",function(ev){
 ev.preventDefault();
-var off=c.classList.contains("on");
-chips.forEach(function(x){x.classList.remove("on");});
-if(off){apply("all","");return;}
-c.classList.add("on");
+if(c===all){reset();return;}
+if(c.classList.contains("on")){reset();return;}
+mark(c);
 apply(c.getAttribute("data-filter"),c.getAttribute("data-value"));
 });
 });
