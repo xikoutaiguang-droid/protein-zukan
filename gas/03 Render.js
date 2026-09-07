@@ -346,7 +346,7 @@ const SITE_CSS = [
   '.herotxt{font-family:"Zen Kaku Gothic New";font-weight:900;font-size:19px;line-height:1;color:#fff}',
   '.herotxt h1{font:inherit;letter-spacing:inherit;margin:0}',
   '.herotxt small{display:block;font-family:"Noto Sans JP";font-weight:400;font-size:10px;letter-spacing:.04em;color:rgba(255,255,255,.75);margin-top:7px}',
-  '.hero .upd{color:rgba(255,255,255,.75)}',
+  '.hero .upd{color:rgba(255,255,255,.75);align-self:flex-end}',
   '.hero .upd b{color:#fff}',
   '.upd{text-align:right;font-size:10px;color:var(--sub);line-height:1.6}',
   '.upd b{display:block;color:var(--ink);font-weight:700;font-size:11.5px;font-family:"Zen Kaku Gothic New"}',
