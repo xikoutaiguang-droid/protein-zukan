@@ -97,10 +97,12 @@ function iconSvg_() {
 
 /** ファビコン用。フォント読み込みに頼らず、標準のsans-serifだけで組む。 */
 function faviconHref_() {
-  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">' +
-    '<rect width="32" height="32" rx="7" fill="%232F5CFF"/>' +
-    '<text x="16" y="22" font-family="Arial,sans-serif" font-weight="900" font-size="14" fill="%23fff" text-anchor="middle">20</text>' +
-    '</svg>';
+  // SVGの中身は一重引用符で組む。二重引用符にすると、この文字列を
+  // 埋め込む先のHTML属性（href="..."）自体の引用符とぶつかってタグが壊れる。
+  const svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'>" +
+    "<rect width='32' height='32' rx='7' fill='%232F5CFF'/>" +
+    "<text x='16' y='22' font-family='Arial,sans-serif' font-weight='900' font-size='14' fill='%23fff' text-anchor='middle'>20</text>" +
+    "</svg>";
   return 'data:image/svg+xml,' + svg;
 }
 
