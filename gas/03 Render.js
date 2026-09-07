@@ -1038,6 +1038,7 @@ function footerNav_() {
     '<a href="/">トップ</a>',
     '<a href="/articles/">読みもの</a>',
     '<a href="/about/">このサイトについて</a>',
+    '<a href="/about-zukan/">中の人について</a>',
     '<a href="/privacy/">プライバシーポリシー</a>',
     '<a href="' + esc_(SITE.CONTACT_URL) + '" target="_blank" rel="noopener">お問い合わせ</a>',
     '</nav>'
