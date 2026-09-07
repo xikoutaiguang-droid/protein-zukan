@@ -341,7 +341,7 @@ const SITE_CSS = [
   '.hero{position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 -20px 20px;padding:20px 20px 16px;min-height:160px;' +
     'background-color:var(--stone);' +
     "background-image:linear-gradient(90deg,rgba(13,14,16,.82),rgba(13,14,16,.35)),url('" + DEFAULT_OG_IMAGE + "');" +
-    'background-size:cover;background-position:center;background-repeat:no-repeat;' +
+    'background-size:100% 100%,88% auto;background-position:center,center;background-repeat:no-repeat,no-repeat;' +
     'border-bottom:2px solid var(--ink)}',
   '.herotxt{font-family:"Zen Kaku Gothic New";font-weight:900;font-size:19px;line-height:1;color:#fff}',
   '.herotxt h1{font:inherit;letter-spacing:inherit;margin:0}',
