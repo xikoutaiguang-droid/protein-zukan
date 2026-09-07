@@ -335,6 +335,15 @@ const SITE_CSS = [
   '.logotxt{font-family:"Zen Kaku Gothic New";font-weight:900;font-size:18px;line-height:1}',
   '.logotxt h1{font:inherit;letter-spacing:inherit;margin:0}',
   '.logotxt small{display:block;font-family:"Noto Sans JP";font-weight:400;font-size:10px;letter-spacing:.04em;color:var(--sub);margin-top:6px}',
+  // トップページだけの見出し。作成した「20 PRO」の画像を背景にして、
+  // 文字は白抜きで乗せる。.wrapの左右余白ぶんだけ外にはみ出させて、
+  // 画面幅いっぱいに見えるようにしている。
+  '.hero{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:0 -20px 20px;padding:20px 20px 16px;min-height:84px;background:linear-gradient(90deg,rgba(13,14,16,.82),rgba(13,14,16,.35)),var(--stone) center/cover no-repeat;background-image:linear-gradient(90deg,rgba(13,14,16,.82),rgba(13,14,16,.35)),url(' + DEFAULT_OG_IMAGE + ');border-bottom:2px solid var(--ink)}',
+  '.herotxt{font-family:"Zen Kaku Gothic New";font-weight:900;font-size:19px;line-height:1;color:#fff}',
+  '.herotxt h1{font:inherit;letter-spacing:inherit;margin:0}',
+  '.herotxt small{display:block;font-family:"Noto Sans JP";font-weight:400;font-size:10px;letter-spacing:.04em;color:rgba(255,255,255,.75);margin-top:7px}',
+  '.hero .upd{color:rgba(255,255,255,.75)}',
+  '.hero .upd b{color:#fff}',
   '.upd{text-align:right;font-size:10px;color:var(--sub);line-height:1.6}',
   '.upd b{display:block;color:var(--ink);font-weight:700;font-size:11.5px;font-family:"Zen Kaku Gothic New"}',
   '.crumb{font-size:10.5px;color:var(--sub);margin-bottom:11px}',
@@ -964,8 +973,8 @@ function buildIndexHtml_(entries, ctx) {
     ),
     '<div class="ticker"><span>毎日6時に楽天市場から価格を自動取得・更新しています　　毎日6時に楽天市場から価格を自動取得・更新しています</span></div>',
     '<div class="wrap">',
-    '<div class="hd">',
-    logoHtml_(true),
+    '<div class="hero">',
+    '<div class="herotxt"><h1><a href="/">プロテイン図鑑</a></h1><small>毎日更新のプロテイン価格比較</small></div>',
     '<div class="upd"><b>' + esc_(ctx.updatedLabel) + '</b></div>',
     '</div>',
 
