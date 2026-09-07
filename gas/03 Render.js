@@ -338,7 +338,7 @@ const SITE_CSS = [
   // トップページだけの見出し。作成した「20 PRO」の画像を背景にして、
   // 文字は白抜きで乗せる。.wrapの左右余白ぶんだけ外にはみ出させて、
   // 画面幅いっぱいに見えるようにしている。
-  '.hero{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:0 -20px 20px;padding:20px 20px 16px;min-height:200px;' +
+  '.hero{position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 -20px 20px;padding:20px 20px 16px;min-height:200px;' +
     'background-color:var(--stone);' +
     "background-image:linear-gradient(90deg,rgba(13,14,16,.82),rgba(13,14,16,.35)),url('" + DEFAULT_OG_IMAGE + "');" +
     'background-size:cover;background-position:center;background-repeat:no-repeat;' +
