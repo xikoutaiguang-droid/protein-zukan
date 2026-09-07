@@ -262,15 +262,23 @@ function jsonLd_(obj) {
 }
 
 /**
+ * SNSシェア時の既定の画像。
+ * 商品ページは楽天の商品写真を個別に渡すが、それ以外（トップ・記事・
+ * ブランド別など）は指定がなければこれを使う。
+ */
+const DEFAULT_OG_IMAGE = 'https://proteinzukan.com/assets/og-image.jpg';
+
+/**
  * ページ共通のhead。
  *
  * @param {string} title
  * @param {string} description
  * @param {string} canonical
- * @param {string} [ogImage] SNSシェア時に出す画像URL。無ければ画像なしで表示される。
+ * @param {string} [ogImage] SNSシェア時に出す画像URL。省略時は DEFAULT_OG_IMAGE を使う。
  * @param {string} [ogType] 'website' | 'article' 等。省略時は 'website'。
  */
 function htmlHead_(title, description, canonical, ogImage, ogType) {
+  const image = ogImage || DEFAULT_OG_IMAGE;
   return [
     '<!DOCTYPE html>',
     '<html lang="ja">',
@@ -287,12 +295,12 @@ function htmlHead_(title, description, canonical, ogImage, ogType) {
     '<meta property="og:title" content="' + esc_(title) + '">',
     '<meta property="og:description" content="' + esc_(description) + '">',
     canonical ? '<meta property="og:url" content="' + esc_(canonical) + '">' : '',
-    ogImage ? '<meta property="og:image" content="' + esc_(ogImage) + '">' : '',
+    '<meta property="og:image" content="' + esc_(image) + '">',
     '<meta property="og:locale" content="ja_JP">',
-    '<meta name="twitter:card" content="' + (ogImage ? 'summary_large_image' : 'summary') + '">',
+    '<meta name="twitter:card" content="summary_large_image">',
     '<meta name="twitter:title" content="' + esc_(title) + '">',
     '<meta name="twitter:description" content="' + esc_(description) + '">',
-    ogImage ? '<meta name="twitter:image" content="' + esc_(ogImage) + '">' : '',
+    '<meta name="twitter:image" content="' + esc_(image) + '">',
     '<link rel="preconnect" href="https://fonts.googleapis.com">',
     '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
     '<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800;900&family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">',
