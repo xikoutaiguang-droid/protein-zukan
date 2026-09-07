@@ -338,7 +338,11 @@ const SITE_CSS = [
   // トップページだけの見出し。作成した「20 PRO」の画像を背景にして、
   // 文字は白抜きで乗せる。.wrapの左右余白ぶんだけ外にはみ出させて、
   // 画面幅いっぱいに見えるようにしている。
-  '.hero{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:0 -20px 20px;padding:20px 20px 16px;min-height:84px;background:linear-gradient(90deg,rgba(13,14,16,.82),rgba(13,14,16,.35)),var(--stone) center/cover no-repeat;background-image:linear-gradient(90deg,rgba(13,14,16,.82),rgba(13,14,16,.35)),url(' + DEFAULT_OG_IMAGE + ');border-bottom:2px solid var(--ink)}',
+  '.hero{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:0 -20px 20px;padding:20px 20px 16px;min-height:84px;' +
+    'background-color:var(--stone);' +
+    "background-image:linear-gradient(90deg,rgba(13,14,16,.82),rgba(13,14,16,.35)),url('" + DEFAULT_OG_IMAGE + "');" +
+    'background-size:cover;background-position:center;background-repeat:no-repeat;' +
+    'border-bottom:2px solid var(--ink)}',
   '.herotxt{font-family:"Zen Kaku Gothic New";font-weight:900;font-size:19px;line-height:1;color:#fff}',
   '.herotxt h1{font:inherit;letter-spacing:inherit;margin:0}',
   '.herotxt small{display:block;font-family:"Noto Sans JP";font-weight:400;font-size:10px;letter-spacing:.04em;color:rgba(255,255,255,.75);margin-top:7px}',
