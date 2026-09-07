@@ -84,6 +84,39 @@ function comma_(n) {
 }
 
 /**
+ * サイトのアイコン（角丸の四角に「20」）。
+ * 「タンパク質20gあたりで比べる」というこのサイトの軸をそのままマークにしている。
+ * ヘッダーではこのSVGをそのまま埋め込み、ファビコンは同じ絵を data URI にして使う。
+ */
+function iconSvg_() {
+  return '<svg class="logoicon" viewBox="0 0 32 32" role="img" aria-label="プロテイン図鑑">' +
+    '<rect width="32" height="32" rx="7" fill="#2F5CFF"/>' +
+    '<text x="16" y="21.5" font-family="Archivo,Arial,sans-serif" font-weight="900" font-size="13" fill="#fff" text-anchor="middle">20</text>' +
+    '</svg>';
+}
+
+/** ファビコン用。フォント読み込みに頼らず、標準のsans-serifだけで組む。 */
+function faviconHref_() {
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">' +
+    '<rect width="32" height="32" rx="7" fill="%232F5CFF"/>' +
+    '<text x="16" y="22" font-family="Arial,sans-serif" font-weight="900" font-size="14" fill="%23fff" text-anchor="middle">20</text>' +
+    '</svg>';
+  return 'data:image/svg+xml,' + svg;
+}
+
+/**
+ * ヘッダーのロゴ（アイコン＋サイト名）。
+ * トップページだけ、サイト名を h1 として出す（見出しの重複を避けるため）。
+ */
+function logoHtml_(asH1) {
+  const name = asH1 ? '<h1><a href="/">プロテイン図鑑</a></h1>' : '<a href="/">プロテイン図鑑</a>';
+  return '<div class="logo">' +
+    iconSvg_() +
+    '<div class="logotxt">' + name + '<small>毎日更新のプロテイン価格比較</small></div>' +
+    '</div>';
+}
+
+/**
  * 前回のビルドからの順位の変動を、矢印で出す。
  * up=緑の↑、down=赤の↓、same=グレーの→。
  * 比べる前回の記録が無い（初回や新規商品）ときは null になり、何も出さない。
@@ -246,6 +279,7 @@ function htmlHead_(title, description, canonical, ogImage, ogType) {
     '<meta name="viewport" content="width=device-width,initial-scale=1">',
     '<title>' + esc_(title) + '</title>',
     '<meta name="description" content="' + esc_(description) + '">',
+    '<link rel="icon" type="image/svg+xml" href="' + faviconHref_() + '">',
     canonical ? '<link rel="canonical" href="' + esc_(canonical) + '">' : '',
     // OGP。X（Twitter）やLINEでシェアされたときに、タイトル・説明・画像を出すため。
     '<meta property="og:site_name" content="プロテイン図鑑">',
@@ -286,9 +320,11 @@ const SITE_CSS = [
   '@keyframes tick{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}',
   '.wrap{max-width:660px;margin:0 auto;padding:0 20px 80px}',
   '.hd{display:flex;align-items:flex-end;justify-content:space-between;padding:24px 0 15px;border-bottom:2px solid var(--ink);margin-bottom:20px}',
-  '.logo{font-family:"Zen Kaku Gothic New";font-weight:900;font-size:18px;line-height:1}',
-  '.logo h1{font:inherit;letter-spacing:inherit;margin:0}',
-  '.logo small{display:block;font-family:"Noto Sans JP";font-weight:400;font-size:10px;letter-spacing:.04em;color:var(--sub);margin-top:6px}',
+  '.logo{display:flex;align-items:center;gap:9px}',
+  '.logoicon{width:27px;height:27px;flex:none;display:block}',
+  '.logotxt{font-family:"Zen Kaku Gothic New";font-weight:900;font-size:18px;line-height:1}',
+  '.logotxt h1{font:inherit;letter-spacing:inherit;margin:0}',
+  '.logotxt small{display:block;font-family:"Noto Sans JP";font-weight:400;font-size:10px;letter-spacing:.04em;color:var(--sub);margin-top:6px}',
   '.upd{text-align:right;font-size:10px;color:var(--sub);line-height:1.6}',
   '.upd b{display:block;color:var(--ink);font-weight:700;font-size:11.5px;font-family:"Zen Kaku Gothic New"}',
   '.crumb{font-size:10.5px;color:var(--sub);margin-bottom:11px}',
@@ -499,7 +535,7 @@ function buildArticleHtml_(article, bodyHtml) {
     ),
     '<div class="wrap">',
     '<div class="hd">',
-    '<div class="logo"><a href="/">プロテイン図鑑</a><small>毎日更新のプロテイン価格比較</small></div>',
+    logoHtml_(false),
     '</div>',
     '<div class="crumb"><a href="/">トップ</a> ／ <a href="/articles/">読みもの</a></div>',
     '<article class="art">',
@@ -695,7 +731,7 @@ function buildItemHtml_(product, price, history, ctx, articlesByHref) {
     htmlHead_(fullName + '｜プロテイン図鑑', description, product.canonical || '', ogImage),
     '<div class="wrap">',
     '<div class="hd">',
-    '<div class="logo"><a href="/">プロテイン図鑑</a><small>毎日更新のプロテイン価格比較</small></div>',
+    logoHtml_(false),
     '<div class="upd"><b>' + esc_(ctx.updatedLabel) + '</b></div>',
     '</div>',
     '<div class="crumb">' + esc_(crumb) + '</div>',
@@ -919,7 +955,7 @@ function buildIndexHtml_(entries, ctx) {
     '<div class="ticker"><span>毎日6時に楽天市場から価格を自動取得・更新しています　　毎日6時に楽天市場から価格を自動取得・更新しています</span></div>',
     '<div class="wrap">',
     '<div class="hd">',
-    '<div class="logo"><h1><a href="/">プロテイン図鑑</a></h1><small>毎日更新のプロテイン価格比較</small></div>',
+    logoHtml_(true),
     '<div class="upd"><b>' + esc_(ctx.updatedLabel) + '</b></div>',
     '</div>',
 
@@ -1007,7 +1043,7 @@ function buildArticlesIndexHtml_(articles, ctx) {
     ),
     '<div class="wrap">',
     '<div class="hd">',
-    '<div class="logo"><a href="/">プロテイン図鑑</a><small>毎日更新のプロテイン価格比較</small></div>',
+    logoHtml_(false),
     '<div class="upd"><b>' + esc_(ctx.updatedLabel) + '</b></div>',
     '</div>',
     '<div class="crumb"><a href="/">トップ</a> ／ 読みもの</div>',
@@ -1065,7 +1101,7 @@ function buildAboutHtml_(ctx) {
     ),
     '<div class="wrap">',
     '<div class="hd">',
-    '<div class="logo"><a href="/">プロテイン図鑑</a><small>毎日更新のプロテイン価格比較</small></div>',
+    logoHtml_(false),
     '</div>',
     '<div class="crumb"><a href="/">トップ</a> ／ このサイトについて</div>',
 
@@ -1128,7 +1164,7 @@ function buildPrivacyHtml_(ctx) {
     ),
     '<div class="wrap">',
     '<div class="hd">',
-    '<div class="logo"><a href="/">プロテイン図鑑</a><small>毎日更新のプロテイン価格比較</small></div>',
+    logoHtml_(false),
     '</div>',
     '<div class="crumb"><a href="/">トップ</a> ／ プライバシーポリシー</div>',
 
@@ -1383,7 +1419,7 @@ function buildBrandHtml_(brand, entries, ctx) {
     ),
     '<div class="wrap">',
     '<div class="hd">',
-    '<div class="logo"><a href="/">プロテイン図鑑</a><small>毎日更新のプロテイン価格比較</small></div>',
+    logoHtml_(false),
     '<div class="upd"><b>' + esc_(ctx.updatedLabel) + '</b></div>',
     '</div>',
     '<div class="crumb"><a href="/">トップ</a> ／ ブランド ／ ' + esc_(brand.name) + '</div>',
@@ -1429,7 +1465,7 @@ function buildMethodHtml_(method, entries, ctx) {
     ),
     '<div class="wrap">',
     '<div class="hd">',
-    '<div class="logo"><a href="/">プロテイン図鑑</a><small>毎日更新のプロテイン価格比較</small></div>',
+    logoHtml_(false),
     '<div class="upd"><b>' + esc_(ctx.updatedLabel) + '</b></div>',
     '</div>',
     '<div class="crumb"><a href="/">トップ</a> ／ 製法 ／ ' + esc_(method.name) + '</div>',
