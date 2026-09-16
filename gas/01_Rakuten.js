@@ -3728,3 +3728,47 @@ function testOikosProChoco() {
   Logger.log(out);
   return out;
 }
+
+
+/**
+ * オイコスPRO リッチチョコをマスタに追加する。
+ * 既存の oikos-pro-vanilla の行を複製（copyToで数式ごと）、
+ * 商品ID・味・検索キーワードだけ差し替える。
+ */
+function addOikosProChoco() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+  const lastCol = header.length;
+
+  function col(name) {
+    const index = header.indexOf(name);
+    if (index === -1) throw new Error('列が見つかりません: ' + name);
+    return index;
+  }
+
+  let baseRow = -1;
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][col('商品ID')]).trim() === 'oikos-pro-vanilla') {
+      baseRow = i + 1;
+      break;
+    }
+  }
+  if (baseRow === -1) throw new Error('複製元の行が見つかりません: oikos-pro-vanilla');
+
+  const targetRow = sheet.getLastRow() + 1;
+  sheet.getRange(baseRow, 1, 1, lastCol).copyTo(sheet.getRange(targetRow, 1, 1, lastCol));
+
+  sheet.getRange(targetRow, col('商品ID') + 1).setValue('oikos-pro-choco');
+  sheet.getRange(targetRow, col('味') + 1).setValue('リッチチョコ');
+  sheet.getRange(targetRow, col('検索キーワード') + 1).setValue('オイコス PRO プロテインドリンク リッチチョコ 240ml');
+  sheet.getRange(targetRow, col('ステータス') + 1).setValue('準備中');
+  sheet.getRange(targetRow, col('画像URL') + 1).setValue('');
+  if (col('備考') !== -1) sheet.getRange(targetRow, col('備考') + 1).setValue('');
+
+  setDerivedFormulas_(sheet, header, targetRow);
+
+  const message = 'oikos-pro-choco / リッチチョコ 追加（準備中）\n\n次の手順: collectImages() → 画像確認 → 公開に変更。';
+  Logger.log(message);
+  return message;
+}
