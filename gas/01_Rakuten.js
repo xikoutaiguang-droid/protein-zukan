@@ -3956,6 +3956,17 @@ function addDnsProX() {
     { id: 'dns-prox-mango-350', flavor: 'マンゴー', keyword: 'DNS プロエックス マンゴー 350ml' }
   ];
 
+  // 前回の実行が列名エラーで途中で止まった際にできた不完全な行が
+  // 残っていれば、重複IDにならないよう先に削除してから作り直す。
+  candidates.forEach(function (c) {
+    for (let i = sheet.getLastRow(); i > baseRow; i--) {
+      const idCell = sheet.getRange(i, col('商品ID') + 1).getValue();
+      if (String(idCell).trim() === c.id) {
+        sheet.deleteRow(i);
+      }
+    }
+  });
+
   const lines = [];
 
   candidates.forEach(function (c) {
@@ -3973,8 +3984,10 @@ function addDnsProX() {
     sheet.getRange(targetRow, col('検索キーワード') + 1).setValue(c.keyword);
     sheet.getRange(targetRow, col('ステータス') + 1).setValue('準備中');
     sheet.getRange(targetRow, col('画像URL') + 1).setValue('');
-    if (col('体験メモ') !== -1) sheet.getRange(targetRow, col('体験メモ') + 1).setValue('');
-    if (col('備考') !== -1) sheet.getRange(targetRow, col('備考') + 1).setValue('');
+    const experienceCol = header.indexOf('体験メモ');
+    if (experienceCol !== -1) sheet.getRange(targetRow, experienceCol + 1).setValue('');
+    const noteCol = header.indexOf('備考');
+    if (noteCol !== -1) sheet.getRange(targetRow, noteCol + 1).setValue('');
 
     setDerivedFormulas_(sheet, header, targetRow);
 
