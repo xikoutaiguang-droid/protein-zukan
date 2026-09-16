@@ -3137,3 +3137,166 @@ function checkComputedColumns() {
   Logger.log(out);
   return out;
 }
+
+
+/**
+ * 列インデックス（0始まり）をA1形式の列文字に変換する（A, B, ... Z, AA, ...）。
+ */
+function columnIndexToLetter_(index) {
+  let n = index + 1;
+  let letter = '';
+  while (n > 0) {
+    const rem = (n - 1) % 26;
+    letter = String.fromCharCode(65 + rem) + letter;
+    n = Math.floor((n - 1) / 26);
+  }
+  return letter;
+}
+
+/**
+ * 指定行の「タンパク質含有率%」「1袋の総タンパク質g」「判定」に、
+ * このシートの本来の数式（行番号だけ差し替えたもの）を書き込む。
+ * 単純な値コピーで複製した行は、この3列が固定値のまま古い数値で
+ * 止まってしまう（タンパク質g/食を後から直しても再計算されない）ため。
+ */
+function setDerivedFormulas_(sheet, header, rowNumber) {
+  const formCol = columnIndexToLetter_(header.indexOf('形態'));
+  const capCol = columnIndexToLetter_(header.indexOf('容量g'));
+  const servCol = columnIndexToLetter_(header.indexOf('1食あたりg'));
+  const protCol = columnIndexToLetter_(header.indexOf('タンパク質g/食'));
+
+  const rateCol = header.indexOf('タンパク質含有率%');
+  const totalCol = header.indexOf('1袋の総タンパク質g');
+  const judgeCol = header.indexOf('判定');
+
+  const F = formCol + rowNumber;
+  const G = capCol + rowNumber;
+  const H = servCol + rowNumber;
+  const I = protCol + rowNumber;
+
+  if (rateCol !== -1) {
+    sheet.getRange(rowNumber, rateCol + 1).setFormula('=IFERROR(ROUND(' + I + '/' + H + '*100,1),"")');
+  }
+  if (totalCol !== -1) {
+    sheet.getRange(rowNumber, totalCol + 1).setFormula('=IFERROR(ROUND(' + G + '/' + H + '*' + I + ',1),"")');
+  }
+  if (judgeCol !== -1) {
+    sheet.getRange(rowNumber, judgeCol + 1).setFormula(
+      '=IF(OR($' + F + '="",$' + H + '="",$' + I + '=""),"",' +
+      'IF($' + F + '="RTD",IF(AND($' + I + '/$' + H + '*100>=3,$' + I + '/$' + H + '*100<=12),"OK","要確認"),' +
+      'IF(AND($' + I + '/$' + H + '*100>=40,$' + I + '/$' + H + '*100<=90),"OK","要確認")))'
+    );
+  }
+}
+
+/**
+ * 一時関数（1回きりの修正）。
+ * addDnsFlavorVariants で追加した5行は row.slice()+setValues() で複製したため、
+ * タンパク質含有率%・1袋の総タンパク質g・判定が数式ではなく固定値のまま入っている。
+ * correctDnsWhey100Protein でタンパク質g/食を直しても、この3列は再計算されていない。
+ * 正しい数式に差し替える。
+ */
+function fixDnsComputedColumns() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+  const productIdCol = header.indexOf('商品ID');
+
+  const targetIds = [
+    'dns-whey100-richvanilla-630',
+    'dns-whey100-premiumchoco-630',
+    'dns-whey100-ichigomilk-630',
+    'dns-whey100-bananaore-630',
+    'dns-whey100-mango-630'
+  ];
+
+  const fixed = [];
+
+  for (let i = 1; i < values.length; i++) {
+    const productId = String(values[i][productIdCol]).trim();
+    if (targetIds.indexOf(productId) === -1) continue;
+
+    setDerivedFormulas_(sheet, header, i + 1);
+    fixed.push(productId);
+  }
+
+  const message = fixed.length + '行の数式を修正しました。\n' + fixed.join('\n');
+  Logger.log(message);
+  return message;
+}
+
+
+/**
+ * ビーレジェンド・マイプロテインの検証済み追加候補をマスタに反映する。
+ *   1. myp-impact-milktea-1000 … ステータスを「停止」→「公開」に戻す（既存データそのまま）
+ *   2. マイプロテイン バナナ 1kg … myp-impact-milktea-1000 の行を複製（copyToで数式ごと）
+ *   3. ビーレジェンド ネクターピーチ 900g … belegend-berry-1000 の行を複製（copyToで数式ごと）
+ *      栄養成分はOIC限定フレーバーのページに記載がなかったため、
+ *      同じWPC標準ラインの実測値（30g/21.5g）を流用し、備考にその旨を明記する。
+ *
+ * 複製は Range.copyTo を使う。行を丸ごとコピーすると、タンパク質含有率%等の
+ * 数式も行番号がずれた形で正しく複製される（値コピーだと固定値になって壊れる）。
+ */
+function addVerifiedFlavors() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+
+  function col(name) {
+    const index = header.indexOf(name);
+    if (index === -1) throw new Error('列が見つかりません: ' + name);
+    return index;
+  }
+
+  function findRow(productId) {
+    for (let i = 1; i < values.length; i++) {
+      if (String(values[i][col('商品ID')]).trim() === productId) {
+        return i + 1;
+      }
+    }
+    throw new Error('行が見つかりません: ' + productId);
+  }
+
+  const lastCol = header.length;
+  const lines = [];
+
+  // 1. マイプロテイン ミルクティー(黒糖) を公開に戻す
+  const milkteaRow = findRow('myp-impact-milktea-1000');
+  sheet.getRange(milkteaRow, col('ステータス') + 1).setValue('公開');
+  lines.push('myp-impact-milktea-1000: 公開に変更');
+
+  // 2. マイプロテイン バナナ 1kg を複製
+  const bananaTargetRow = sheet.getLastRow() + 1;
+  sheet.getRange(milkteaRow, 1, 1, lastCol).copyTo(sheet.getRange(bananaTargetRow, 1, 1, lastCol));
+  sheet.getRange(bananaTargetRow, col('商品ID') + 1).setValue('myp-impact-banana-1000');
+  sheet.getRange(bananaTargetRow, col('味') + 1).setValue('バナナ');
+  sheet.getRange(bananaTargetRow, col('検索キーワード') + 1).setValue('マイプロテイン Impact ホエイプロテイン バナナ 1kg');
+  sheet.getRange(bananaTargetRow, col('ステータス') + 1).setValue('準備中');
+  sheet.getRange(bananaTargetRow, col('画像URL') + 1).setValue('');
+  if (col('備考') !== -1) sheet.getRange(bananaTargetRow, col('備考') + 1).setValue('');
+  setDerivedFormulas_(sheet, header, bananaTargetRow);
+  lines.push('myp-impact-banana-1000: 追加（ミルクティー行を複製、準備中）');
+
+  // 3. ビーレジェンド ネクターピーチ 900g を複製
+  const berryRow = findRow('belegend-berry-1000');
+  const peachTargetRow = sheet.getLastRow() + 1;
+  sheet.getRange(berryRow, 1, 1, lastCol).copyTo(sheet.getRange(peachTargetRow, 1, 1, lastCol));
+  sheet.getRange(peachTargetRow, col('商品ID') + 1).setValue('belegend-peach-900');
+  sheet.getRange(peachTargetRow, col('味') + 1).setValue('ネクターピーチ');
+  sheet.getRange(peachTargetRow, col('検索キーワード') + 1).setValue('ビーレジェンド プロテイン ネクターピーチ 900g');
+  sheet.getRange(peachTargetRow, col('ステータス') + 1).setValue('準備中');
+  sheet.getRange(peachTargetRow, col('画像URL') + 1).setValue('');
+  if (col('備考') !== -1) {
+    sheet.getRange(peachTargetRow, col('備考') + 1).setValue(
+      '栄養成分はOIC限定フレーバーのページに記載なし。標準WPCライン（ベリベリベリー）の実測値を流用。'
+    );
+  }
+  setDerivedFormulas_(sheet, header, peachTargetRow);
+  lines.push('belegend-peach-900: 追加（ベリベリベリー行を複製、準備中、栄養成分は流用と備考に明記）');
+
+  const message = lines.join('\n') +
+    '\n\n次の手順: collectImages() で2件の画像候補を確認 → 画像URLを反映 → ステータスを公開に変更。';
+
+  Logger.log(message);
+  return message;
+}
