@@ -2981,3 +2981,25 @@ function dumpProductRows() {
   Logger.log(out);
   return out;
 }
+
+
+/**
+ * ビーレジェンド・マイプロテインの既存の停止行（栄養成分は検証済み）を、
+ * 現在のRakutenで拾えるか diagnoseProduct でまとめて再テストする。
+ * マスタにもシートにも書き込まない。
+ */
+function retestStoppedFlavors() {
+  const targetIds = [
+    'belegend-berry-1000',
+    'belegend-banana-1000',
+    'myp-impact-choco-1000',
+    'myp-impact-milktea-1000'
+  ];
+
+  const out = targetIds.map(function (id) {
+    return '========== ' + id + ' ==========\n' + diagnoseProduct(id);
+  }).join('\n\n');
+
+  Logger.log(out);
+  return out;
+}
