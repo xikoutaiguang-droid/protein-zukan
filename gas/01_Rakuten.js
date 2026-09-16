@@ -2719,3 +2719,69 @@ function applyDnsFlavorImages() {
   Logger.log(message);
   return message;
 }
+
+/**
+ * DNSフレーバー5件の最終公開。
+ *   1. マスタのステータスを「準備中」→「公開」に変更
+ *   2. runPriceFetch() で価格ログに初回の価格を記録
+ *   3. buildAllPages() でサイトに反映
+ *
+ * 他の公開済み商品にも runPriceFetch は通常どおり走る（日次実行と同じ動き）。
+ */
+function publishDnsFlavorVariants() {
+  const masterSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+
+  if (!masterSheet) {
+    throw new Error('シートが見つかりません: ' + CONFIG.MASTER_SHEET_NAME);
+  }
+
+  const targetIds = [
+    'dns-whey100-richvanilla-630',
+    'dns-whey100-premiumchoco-630',
+    'dns-whey100-ichigomilk-630',
+    'dns-whey100-bananaore-630',
+    'dns-whey100-mango-630'
+  ];
+
+  const values = masterSheet.getDataRange().getValues();
+  const header = values[0];
+  const col = {};
+  header.forEach(function (name, index) {
+    const key = String(name).trim();
+    if (key && col[key] === undefined) col[key] = index;
+  });
+
+  const productIdCol = col['商品ID'];
+  const statusCol = col['ステータス'];
+
+  if (productIdCol === undefined || statusCol === undefined) {
+    throw new Error('マスタの列構成が想定と違います（商品ID / ステータス）。');
+  }
+
+  const updated = [];
+
+  for (let i = 1; i < values.length; i++) {
+    const productId = String(values[i][productIdCol]).trim();
+
+    if (targetIds.indexOf(productId) !== -1) {
+      masterSheet.getRange(i + 1, statusCol + 1).setValue('公開');
+      updated.push(productId);
+    }
+  }
+
+  Logger.log('ステータスを公開に変更: ' + updated.length + '件\n' + updated.join('\n'));
+
+  Logger.log('--- runPriceFetch 開始 ---');
+  const fetchResult = runPriceFetch();
+  Logger.log(fetchResult);
+
+  Logger.log('--- buildAllPages 開始 ---');
+  buildAllPages();
+  Logger.log('buildAllPages 完了');
+
+  const message = updated.length + '件を公開しました。\n' + updated.join('\n') +
+    '\n\n' + fetchResult + '\n\nサイトへの反映も完了しました。';
+
+  Logger.log(message);
+  return message;
+}
