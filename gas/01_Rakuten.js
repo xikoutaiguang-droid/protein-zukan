@@ -3367,3 +3367,92 @@ function publishNewFlavors() {
   Logger.log(message);
   return message;
 }
+
+
+/**
+ * ザバス ホエイプロテイン100 の追加候補フレーバーを、本番と同じ判定ロジックで検証する。
+ * 既存の3フレーバー（ココア・バニラアイスクリーム・リッチショコラ）と同じ
+ * 1食28g・タンパク質20gを使う（キャラメル味の楽天ページで実測値が完全一致することを確認済み）。
+ * マスタにもシートにも書き込まない。
+ */
+function testSavasFlavorCandidates() {
+  const credentials = getCredentials_();
+
+  const candidates = [
+    { flavor: 'キャラメル', capacity: 980, keyword: 'ザバス ホエイプロテイン100 980g キャラメル' },
+    { flavor: 'ミルクティー', capacity: 980, keyword: 'ザバス ホエイプロテイン100 980g ミルクティー' },
+    { flavor: 'ストロベリー', capacity: 980, keyword: 'ザバス ホエイプロテイン100 980g ストロベリー' },
+    { flavor: '抹茶', capacity: 800, keyword: 'ザバス ホエイプロテイン100 800g 抹茶' },
+    { flavor: 'バナナ', capacity: 980, keyword: 'ザバス ホエイプロテイン100 980g バナナ' }
+  ];
+
+  const lines = [];
+
+  candidates.forEach(function (c) {
+    const product = {
+      productId: 'test-savas-' + c.flavor,
+      brand: 'ザバス',
+      series: '',
+      flavor: c.flavor,
+      method: 'wpc',
+      form: 'パウダー',
+      capacity: c.capacity,
+      servingSize: 28,
+      proteinPerServing: 20,
+      keyword: c.keyword,
+      status: '公開',
+      totalProtein: (c.capacity / 28) * 20
+    };
+
+    let items;
+    try {
+      items = searchRakuten_(credentials, c.keyword, CONFIG.FETCH_HITS, {
+        pages: CONFIG.FETCH_PAGES,
+        ngKeyword: buildNgKeyword_(product.form)
+      });
+    } catch (e) {
+      lines.push(c.flavor + ' [' + c.keyword + ']: エラー ' + e.message);
+      Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+      return;
+    }
+
+    if (items.length === 0) {
+      lines.push(c.flavor + ' [' + c.keyword + ']: ヒット0件');
+      Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+      return;
+    }
+
+    const reasons = {};
+    let best = null;
+
+    items.forEach(function (item) {
+      const evaluated = evaluateItem_(product, item);
+      if (!evaluated.rejectReason) {
+        if (!best || item.itemPrice < best.item.itemPrice) {
+          best = { item: item, evaluated: evaluated };
+        }
+      } else {
+        reasons[evaluated.rejectReason] = (reasons[evaluated.rejectReason] || 0) + 1;
+      }
+    });
+
+    if (best) {
+      lines.push(
+        c.flavor + ' [' + c.keyword + ']: 採用可 — ' + best.item.itemPrice + '円 / ' +
+        best.item.shopName + ' / 20gあたり' + best.evaluated.pricePer20g + '円' +
+        '\n      ' + best.item.cleanName
+      );
+    } else {
+      const reasonSummary = Object.keys(reasons)
+        .map(function (r) { return r + ':' + reasons[r] + '件'; })
+        .join(' / ');
+      lines.push(c.flavor + ' [' + c.keyword + ']: 採用できる結果が0件（' + items.length + '件中 ' + reasonSummary + '）');
+    }
+
+    Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+  });
+
+  const out = lines.join('\n\n');
+  Logger.log(out);
+  return out;
+}
