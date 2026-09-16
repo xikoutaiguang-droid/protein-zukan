@@ -1415,6 +1415,15 @@ function detectMultiFlavor_(name) {
     return marker;
   }
 
+  // 「2種セット各12本」のように、味の数が閾値未満でも詰め合わせだと
+  // 分かる表記がある。「N種」+「セット」の組み合わせを別途検出する。
+  // （「各12本」だけでは通常のRTDケース売りと区別できないため、
+  // 「N種」の有無を条件にしている）
+  const setMatch = String(name).match(/(\d+)\s*種(?:類)?\s*(?:セット|詰め合わせ|アソート)/);
+  if (setMatch && Number(setMatch[1]) >= 2) {
+    return setMatch[1] + '種セット';
+  }
+
   // 長い語から順に消しながら数える。
   // そうしないと「ストロベリー」が「ベリー」にも当たって2種類と数えてしまう。
   const sorted = FLAVOR_TOKENS_FOR_COUNT.slice().sort(function (a, b) {
@@ -1652,13 +1661,23 @@ function extractAllSizes_(name) {
  */
 function extractWeights_(name) {
   const found = [];
+  const text = String(name);
   const re = /(\d+(?:[.,]\d+)?)\s*(kg|g)(?![a-z])/gi;
   let m;
 
-  while ((m = re.exec(String(name))) !== null) {
+  while ((m = re.exec(text)) !== null) {
     const value = parseFloat(m[1].replace(/,/g, ''));
 
     if (!isFinite(value) || value <= 0) continue;
+
+    // 「高吸収タンパク質18g」のような、容量ではなくタンパク質量を指す
+    // 「Ng」表記を容量として拾わないようにする。
+    // これを拾うと、直前の CAPACITY_AMBIGUOUS_REJECT の判定で
+    // 正しい容量の商品まで「容量が違う」として除外してしまう。
+    const before = text.slice(Math.max(0, m.index - 10), m.index);
+    if (/(タンパク質|たんぱく質|蛋白質|プロテイン量|protein)\s*$/i.test(before)) {
+      continue;
+    }
 
     const grams = m[2].toLowerCase() === 'kg' ? value * 1000 : value;
     found.push(grams);
