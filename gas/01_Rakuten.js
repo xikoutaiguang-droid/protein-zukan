@@ -3772,3 +3772,68 @@ function addOikosProChoco() {
   Logger.log(message);
   return message;
 }
+
+
+/**
+ * オイコスPRO リッチチョコの画像を反映し、公開に切り替えて
+ * runPriceFetch() と buildAllPages() まで一括で行う。
+ */
+function publishOikosProChoco() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const imageSheet = spreadsheet.getSheetByName(CONFIG.IMAGE_CHECK_SHEET_NAME);
+  const masterSheet = spreadsheet.getSheetByName(CONFIG.MASTER_SHEET_NAME);
+
+  const targetId = 'oikos-pro-choco';
+
+  const imgValues = imageSheet.getDataRange().getValues();
+  const imgHeader = imgValues[0];
+  const imgIdCol = imgHeader.indexOf('商品ID');
+  const imgRankCol = imgHeader.indexOf('順位');
+  const imgImageCol = imgHeader.indexOf('画像');
+
+  let imageUrl = '';
+
+  for (let i = 1; i < imgValues.length; i++) {
+    const productId = String(imgValues[i][imgIdCol]).trim();
+    const rank = Number(imgValues[i][imgRankCol]);
+
+    if (productId !== targetId || rank !== 1) continue;
+
+    const formula = imageSheet.getRange(i + 1, imgImageCol + 1).getFormula();
+    const match = formula.match(/=IMAGE\("([^"]+)"/);
+    if (match) imageUrl = match[1];
+    break;
+  }
+
+  const masterValues = masterSheet.getDataRange().getValues();
+  const header = masterValues[0];
+  const productIdCol = header.indexOf('商品ID');
+  const imageUrlCol = header.indexOf('画像URL');
+  const statusCol = header.indexOf('ステータス');
+
+  let found = false;
+  for (let i = 1; i < masterValues.length; i++) {
+    if (String(masterValues[i][productIdCol]).trim() === targetId) {
+      if (imageUrl) masterSheet.getRange(i + 1, imageUrlCol + 1).setValue(imageUrl);
+      masterSheet.getRange(i + 1, statusCol + 1).setValue('公開');
+      found = true;
+      break;
+    }
+  }
+
+  const line = found
+    ? targetId + ': 画像=' + (imageUrl || '(見つからず)') + ' / 公開に変更'
+    : targetId + ': マスタに行が見つかりませんでした';
+
+  Logger.log('--- runPriceFetch 開始 ---');
+  const fetchResult = runPriceFetch();
+  Logger.log(fetchResult);
+
+  Logger.log('--- buildAllPages 開始 ---');
+  buildAllPages();
+  Logger.log('buildAllPages 完了');
+
+  const message = line + '\n\n' + fetchResult + '\n\nサイトへの反映も完了しました。';
+  Logger.log(message);
+  return message;
+}
