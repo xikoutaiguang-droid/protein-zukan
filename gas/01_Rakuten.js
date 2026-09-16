@@ -87,7 +87,7 @@
  * diagnoseProduct() で調べたい商品ID。
  * 0件になる商品を1つずつここに書き換えて実行する。
  */
-const DIAGNOSE_TARGET_ID = 'oikos-milk-banana';
+const DIAGNOSE_TARGET_ID = 'sav-drinkyogurt-kiwi-250';
 
 const CONFIG = {
   // 商品マスタのシート名（タブの名前と一致させること）
