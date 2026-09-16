@@ -2943,3 +2943,41 @@ function testOtherBrandCandidates() {
   Logger.log(out);
   return out;
 }
+
+/**
+ * 指定した商品IDの行を、列名:値の形ですべてログに出す。
+ * ビーレジェンド・マイプロテインの既存の停止行から、
+ * どの項目（メーカー・ブランドID・製法・タグなど）を安全に再利用できるか確認するため。
+ */
+function dumpProductRows() {
+  const targetIds = [
+    'belegend-berry-1000', 'belegend-banana-1000', 'belegend-trial',
+    'myp-impact-choco-1000', 'myp-impact-milktea-1000'
+  ];
+
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+  const productIdCol = header.indexOf('商品ID');
+
+  const lines = [];
+
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    const productId = String(row[productIdCol]).trim();
+
+    if (targetIds.indexOf(productId) === -1) {
+      continue;
+    }
+
+    const parts = header.map(function (name, index) {
+      return name + ':' + row[index];
+    });
+
+    lines.push('--- ' + productId + ' ---\n' + parts.join('\n'));
+  }
+
+  const out = lines.length > 0 ? lines.join('\n\n') : '該当する行が見つかりませんでした。';
+  Logger.log(out);
+  return out;
+}
