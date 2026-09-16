@@ -196,7 +196,14 @@ const CONFIG = {
 
     // RTDで容量の記載がない商品も除外する。
     // 430mlにタンパク質15gと30gが混在しているため、既定では除外する。
-    RTD_REQUIRE_VOLUME: true
+    RTD_REQUIRE_VOLUME: true,
+
+    // 商品名に、目的の容量と違う容量表記が「一緒に」書かれていたら除外する。
+    // 「ホエイプロテイン100 リッチショコラ味 980g 明治 サイズ：280g」のように、
+    // 旧サイズの文言が残ったまま実際は別容量という誤表記タイトルが実在する。
+    // どれか1つでも一致すればOKとしていたため、980gで検索して実物は280gの
+    // 商品が「採用可」になり、20gあたり単価が3倍以上安く出ていた事故があった。
+    CAPACITY_AMBIGUOUS_REJECT: true
   },
 
   // 2026年の仕様変更後のエンドポイント
@@ -1605,13 +1612,23 @@ function matchCapacity_(name, capacity) {
 
   const tolerance = Math.max(CONFIG.WEIGHT_TOLERANCE_MIN, capacity * CONFIG.WEIGHT_TOLERANCE_RATIO);
 
-  for (let i = 0; i < sizes.length; i++) {
-    if (Math.abs(sizes[i] - capacity) <= tolerance) {
-      return 'ok';
+  const matches = sizes.filter(function (s) { return Math.abs(s - capacity) <= tolerance; });
+
+  if (matches.length === 0) {
+    return 'mismatch';
+  }
+
+  // 目的の容量と一致する表記があっても、それと違う容量表記が
+  // 商品名に一緒に書かれている場合は、旧サイズが残った誤表記の疑いがある。
+  // 「迷ったら除外」の方針に合わせ、一致以外の表記が無いときだけ 'ok' とする。
+  if (CONFIG.STRICT.CAPACITY_AMBIGUOUS_REJECT) {
+    const others = sizes.filter(function (s) { return Math.abs(s - capacity) > tolerance; });
+    if (others.length > 0) {
+      return 'mismatch';
     }
   }
 
-  return 'mismatch';
+  return 'ok';
 }
 
 /**
