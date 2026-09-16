@@ -1675,7 +1675,7 @@ function extractWeights_(name) {
     // これを拾うと、直前の CAPACITY_AMBIGUOUS_REJECT の判定で
     // 正しい容量の商品まで「容量が違う」として除外してしまう。
     const before = text.slice(Math.max(0, m.index - 10), m.index);
-    if (/(タンパク質|たんぱく質|蛋白質|プロテイン量|protein)\s*$/i.test(before)) {
+    if (/(タンパク質|たんぱく質|蛋白質|プロテイン量|プロテイン|protein)\s*$/i.test(before)) {
       continue;
     }
 
