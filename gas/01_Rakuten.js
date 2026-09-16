@@ -3099,3 +3099,41 @@ function retestStoppedFlavors() {
   Logger.log(out);
   return out;
 }
+
+
+/**
+ * 「タンパク質含有率%」「1袋の総タンパク質g」「判定」列が数式かどうかを確認する。
+ * 数式ならただの値コピーで複製すると壊れるため、行複製の方法を決める前に確認する。
+ */
+function checkComputedColumns() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+
+  const targets = ['タンパク質含有率%', '1袋の総タンパク質g', '判定'];
+  const productIdCol = header.indexOf('商品ID');
+
+  let rowIndex = -1;
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][productIdCol]).trim() === 'belegend-berry-1000') {
+      rowIndex = i + 1;
+      break;
+    }
+  }
+
+  if (rowIndex === -1) {
+    return 'belegend-berry-1000 が見つかりませんでした。';
+  }
+
+  const lines = targets.map(function (name) {
+    const colIndex = header.indexOf(name);
+    if (colIndex === -1) return name + ': 列なし';
+    const formula = sheet.getRange(rowIndex, colIndex + 1).getFormula();
+    const value = sheet.getRange(rowIndex, colIndex + 1).getValue();
+    return name + ': formula="' + formula + '" value=' + value;
+  });
+
+  const out = lines.join('\n');
+  Logger.log(out);
+  return out;
+}
