@@ -2533,3 +2533,84 @@ function testDnsFlavorCandidates() {
   Logger.log(out);
   return out;
 }
+
+/**
+ * 検証済みのDNSフレーバー追加候補を商品マスタに書き込む。
+ *
+ * 既存の dns-whey100-630（カフェオレ）の行をそのまま複製し、
+ * 商品ID・味・検索キーワードだけを差し替える。
+ * メーカー・ブランド・シリーズ・製法・容量・1食あたり・タンパク質量は
+ * カフェオレ版と同じ商品（フレーバー違いだけ）なのでコピーする。
+ *
+ * 画像URLと体験メモは空欄で追加する。
+ *   画像URL … collectImages() で改めて選ぶため
+ *   体験メモ … 実際に飲んだことがないフレーバーなので書かない
+ *
+ * ステータスは「準備中」で追加する。画像を選んでから手動で「公開」に変える。
+ */
+function addDnsFlavorVariants() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+
+  if (!sheet) {
+    throw new Error('シートが見つかりません: ' + CONFIG.MASTER_SHEET_NAME);
+  }
+
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+
+  const col = {};
+  header.forEach(function (name, index) {
+    const key = String(name).trim();
+    if (key && col[key] === undefined) col[key] = index;
+  });
+
+  function idx(name) {
+    if (col[name] === undefined) {
+      throw new Error('列が見つかりません: ' + name);
+    }
+    return col[name];
+  }
+
+  let baseRow = null;
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][idx('商品ID')]).trim() === 'dns-whey100-630') {
+      baseRow = values[i];
+      break;
+    }
+  }
+
+  if (!baseRow) {
+    throw new Error('複製元の行が見つかりません: dns-whey100-630');
+  }
+
+  const candidates = [
+    { id: 'dns-whey100-richvanilla-630', flavor: 'リッチバニラ', keyword: 'DNS プロテインホエイ100 630g リッチバニラ' },
+    { id: 'dns-whey100-premiumchoco-630', flavor: 'チョコレート', keyword: 'DNS プロテインホエイ100 630g プレミアムチョコレート' },
+    { id: 'dns-whey100-ichigomilk-630', flavor: 'イチゴ', keyword: 'DNS プロテインホエイ100 630g いちごミルク' },
+    { id: 'dns-whey100-bananaore-630', flavor: 'バナナ', keyword: 'DNS プロテインホエイ100 630g バナナオレ' },
+    { id: 'dns-whey100-mango-630', flavor: 'マンゴー', keyword: 'DNS プロテインホエイ100 630g トロピカルマンゴー' }
+  ];
+
+  const newRows = candidates.map(function (c) {
+    const row = baseRow.slice();
+
+    row[idx('商品ID')] = c.id;
+    row[idx('味')] = c.flavor;
+    row[idx('検索キーワード')] = c.keyword;
+    row[idx('ステータス')] = '準備中';
+
+    if (col['画像URL'] !== undefined) row[idx('画像URL')] = '';
+    if (col['体験メモ'] !== undefined) row[idx('体験メモ')] = '';
+
+    return row;
+  });
+
+  sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, header.length).setValues(newRows);
+
+  const message = candidates.length + '件を追加しました（ステータス: 準備中）。\n' +
+    candidates.map(function (c) { return c.id + ' / ' + c.flavor; }).join('\n') +
+    '\n\n次の手順: collectImages() で画像候補を確認 → 画像確認シートで画像URLをマスタに反映 → ステータスを「公開」に変更。';
+
+  Logger.log(message);
+  return message;
+}
