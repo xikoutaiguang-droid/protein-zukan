@@ -2843,3 +2843,103 @@ function correctDnsWhey100Protein() {
   Logger.log(message);
   return message;
 }
+
+// ============================================================
+// 一時関数（ビーレジェンド／マイプロテイン／レイズの再検証。用が済んだら削除して良い）
+// ============================================================
+
+/**
+ * 「フレーバー選択制で拾えない」とされていたビーレジェンド・マイプロテイン・レイズについて、
+ * 楽天で見つかった単品固定価格ページ（代理店経由。公式ストアの多くは選択制ページ）が
+ * 本番と同じ判定ロジックで実際に拾えるかを確認する。マスタにもシートにも書き込まない。
+ *
+ * ビーレジェンド・マイプロテインは既存のブランドNG設定を使う（capacityは実際の
+ * 販売単位に合わせて900g/1kgにしてある。マスタの旧行は1000gだった可能性があり、
+ * それ自体が容量不一致で弾かれていた可能性もある）。
+ * レイズはマスタに存在しないブランドなので、ブランドNG照合なしで確認する。
+ */
+function testOtherBrandCandidates() {
+  const credentials = getCredentials_();
+
+  const candidates = [
+    { brand: 'ビーレジェンド', method: 'wpc', capacity: 900, flavor: 'ピーチ',
+      keyword: 'ビーレジェンド プロテイン ネクターピーチ 900g' },
+    { brand: 'ビーレジェンド', method: 'wpc', capacity: 700, flavor: 'ベリー',
+      keyword: 'ビーレジェンド ホエイプロテイン うれてるベリー 700g' },
+    { brand: 'マイプロテイン', method: 'wpc', capacity: 1000, flavor: 'バナナ',
+      keyword: 'マイプロテイン Impact ホエイプロテイン バナナ 1kg' },
+    { brand: 'マイプロテイン', method: 'wpc', capacity: 1000, flavor: 'ミルクティー',
+      keyword: 'マイプロテイン Impact ホエイプロテイン 黒糖ミルクティー 1kg' },
+    { brand: '', method: 'wpc', capacity: 1000, flavor: 'カフェオレ',
+      keyword: 'レイズ プロテイン カフェオレ 1kg' }
+  ];
+
+  const lines = [];
+
+  candidates.forEach(function (c) {
+    const product = {
+      productId: 'test-' + c.brand + '-' + c.flavor,
+      brand: c.brand,
+      series: '',
+      flavor: c.flavor,
+      method: c.method,
+      form: 'パウダー',
+      capacity: c.capacity,
+      servingSize: 30,
+      proteinPerServing: 20,
+      keyword: c.keyword,
+      status: '公開',
+      totalProtein: (c.capacity / 30) * 20
+    };
+
+    let items;
+    try {
+      items = searchRakuten_(credentials, c.keyword, CONFIG.FETCH_HITS, {
+        pages: CONFIG.FETCH_PAGES,
+        ngKeyword: buildNgKeyword_(product.form)
+      });
+    } catch (e) {
+      lines.push(c.keyword + ': エラー ' + e.message);
+      Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+      return;
+    }
+
+    if (items.length === 0) {
+      lines.push(c.keyword + ': ヒット0件');
+      Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+      return;
+    }
+
+    const reasons = {};
+    let best = null;
+
+    items.forEach(function (item) {
+      const evaluated = evaluateItem_(product, item);
+      if (!evaluated.rejectReason) {
+        if (!best || item.itemPrice < best.item.itemPrice) {
+          best = { item: item, evaluated: evaluated };
+        }
+      } else {
+        reasons[evaluated.rejectReason] = (reasons[evaluated.rejectReason] || 0) + 1;
+      }
+    });
+
+    if (best) {
+      lines.push(
+        c.keyword + ': 採用可 — ' + best.item.itemPrice + '円 / ' + best.item.shopName +
+        '\n      ' + best.item.cleanName
+      );
+    } else {
+      const reasonSummary = Object.keys(reasons)
+        .map(function (r) { return r + ':' + reasons[r] + '件'; })
+        .join(' / ');
+      lines.push(c.keyword + ': 採用できる結果が0件（' + items.length + '件中 ' + reasonSummary + '）');
+    }
+
+    Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+  });
+
+  const out = lines.join('\n\n');
+  Logger.log(out);
+  return out;
+}
