@@ -2614,3 +2614,108 @@ function addDnsFlavorVariants() {
   Logger.log(message);
   return message;
 }
+
+/**
+ * DNSフレーバー追加5件について、画像確認シートの「順位」1位の画像を
+ * 商品マスタの画像URL列に書き込む。ステータスは変えない（公開への変更は別途手動）。
+ *
+ * 画像確認シートのD列（画像）は =IMAGE("url",1) という数式で入っているため、
+ * getValue ではなく getFormula で数式文字列からURLを取り出す。
+ */
+function applyDnsFlavorImages() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const imageSheet = spreadsheet.getSheetByName(CONFIG.IMAGE_CHECK_SHEET_NAME);
+  const masterSheet = spreadsheet.getSheetByName(CONFIG.MASTER_SHEET_NAME);
+
+  if (!imageSheet) {
+    throw new Error('シートが見つかりません: ' + CONFIG.IMAGE_CHECK_SHEET_NAME);
+  }
+  if (!masterSheet) {
+    throw new Error('シートが見つかりません: ' + CONFIG.MASTER_SHEET_NAME);
+  }
+
+  const targetIds = [
+    'dns-whey100-richvanilla-630',
+    'dns-whey100-premiumchoco-630',
+    'dns-whey100-ichigomilk-630',
+    'dns-whey100-bananaore-630',
+    'dns-whey100-mango-630'
+  ];
+
+  const imgValues = imageSheet.getDataRange().getValues();
+  const imgHeader = imgValues[0];
+  const imgCol = {};
+  imgHeader.forEach(function (name, index) {
+    const key = String(name).trim();
+    if (key && imgCol[key] === undefined) imgCol[key] = index;
+  });
+
+  const rankCol = imgCol['順位'];
+  const idCol = imgCol['商品ID'];
+  const imageColIndex = imgCol['画像'];
+
+  if (rankCol === undefined || idCol === undefined || imageColIndex === undefined) {
+    throw new Error('画像確認シートの列構成が想定と違います（商品ID / 順位 / 画像）。');
+  }
+
+  const found = {};
+
+  for (let i = 1; i < imgValues.length; i++) {
+    const productId = String(imgValues[i][idCol]).trim();
+    const rank = Number(imgValues[i][rankCol]);
+
+    if (targetIds.indexOf(productId) === -1 || rank !== 1) {
+      continue;
+    }
+
+    const formula = imageSheet.getRange(i + 1, imageColIndex + 1).getFormula();
+    const match = formula.match(/=IMAGE\("([^"]+)"/);
+
+    if (match) {
+      found[productId] = match[1];
+    }
+  }
+
+  const masterValues = masterSheet.getDataRange().getValues();
+  const masterHeader = masterValues[0];
+  const masterCol = {};
+  masterHeader.forEach(function (name, index) {
+    const key = String(name).trim();
+    if (key && masterCol[key] === undefined) masterCol[key] = index;
+  });
+
+  const productIdCol = masterCol['商品ID'];
+  const imageUrlCol = masterCol['画像URL'];
+
+  if (productIdCol === undefined || imageUrlCol === undefined) {
+    throw new Error('マスタの列構成が想定と違います（商品ID / 画像URL）。');
+  }
+
+  const lines = [];
+
+  targetIds.forEach(function (productId) {
+    if (!found[productId]) {
+      lines.push(productId + ': 順位1位の画像が見つかりませんでした（未着手 or ヒット0件）');
+      return;
+    }
+
+    let written = false;
+
+    for (let i = 1; i < masterValues.length; i++) {
+      if (String(masterValues[i][productIdCol]).trim() === productId) {
+        masterSheet.getRange(i + 1, imageUrlCol + 1).setValue(found[productId]);
+        lines.push(productId + ': ' + found[productId]);
+        written = true;
+        break;
+      }
+    }
+
+    if (!written) {
+      lines.push(productId + ': マスタに行が見つかりませんでした');
+    }
+  });
+
+  const message = lines.join('\n');
+  Logger.log(message);
+  return message;
+}
