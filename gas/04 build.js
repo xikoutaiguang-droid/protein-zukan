@@ -941,7 +941,7 @@ function toChips_(groups, dir) {
  * 実行後、実行ログ（表示 > 実行数、または実行後に出るログ）をコピーして
  * チャットに貼ってもらう想定。実行後はこの関数を消してよい。
  */
-function dumpMasterInventory_() {
+function dumpMasterInventory() {
   const products = readMasterFull_();
 
   const lines = products.map(function (p) {
