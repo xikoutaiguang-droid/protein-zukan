@@ -3456,3 +3456,67 @@ function testSavasFlavorCandidates() {
   Logger.log(out);
   return out;
 }
+
+
+/**
+ * ザバス ホエイプロテイン100 の検証済み追加候補5件をマスタに反映する。
+ * 既存の sav-whey-cocoa-980 の行を複製し（copyToで数式ごと）、商品ID・味・
+ * 検索キーワードだけ差し替える。抹茶だけ容量800g・タンパク質19.1gと実測値が
+ * 違ったため、複製後に個別に上書きする。
+ */
+function addSavasFlavors() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+  const lastCol = header.length;
+
+  function col(name) {
+    const index = header.indexOf(name);
+    if (index === -1) throw new Error('列が見つかりません: ' + name);
+    return index;
+  }
+
+  let baseRow = -1;
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][col('商品ID')]).trim() === 'sav-whey-cocoa-980') {
+      baseRow = i + 1;
+      break;
+    }
+  }
+  if (baseRow === -1) throw new Error('複製元の行が見つかりません: sav-whey-cocoa-980');
+
+  const candidates = [
+    { id: 'sav-whey-caramel-980', flavor: 'キャラメル', keyword: 'ザバス ホエイプロテイン100 980g キャラメル', capacity: 980, serving: 28, protein: 20 },
+    { id: 'sav-whey-milktea-980', flavor: 'ミルクティー', keyword: 'ザバス ホエイプロテイン100 980g ミルクティー', capacity: 980, serving: 28, protein: 20 },
+    { id: 'sav-whey-strawberry-980', flavor: 'ストロベリー', keyword: 'ザバス ホエイプロテイン100 980g ストロベリー', capacity: 980, serving: 28, protein: 20 },
+    { id: 'sav-whey-banana-980', flavor: 'バナナ', keyword: 'ザバス ホエイプロテイン100 980g バナナ', capacity: 980, serving: 28, protein: 20 },
+    { id: 'sav-whey-matcha-800', flavor: '抹茶', keyword: 'ザバス ホエイプロテイン100 800g 抹茶', capacity: 800, serving: 28, protein: 19.1 }
+  ];
+
+  const lines = [];
+
+  candidates.forEach(function (c) {
+    const targetRow = sheet.getLastRow() + 1;
+    sheet.getRange(baseRow, 1, 1, lastCol).copyTo(sheet.getRange(targetRow, 1, 1, lastCol));
+
+    sheet.getRange(targetRow, col('商品ID') + 1).setValue(c.id);
+    sheet.getRange(targetRow, col('味') + 1).setValue(c.flavor);
+    sheet.getRange(targetRow, col('検索キーワード') + 1).setValue(c.keyword);
+    sheet.getRange(targetRow, col('容量g') + 1).setValue(c.capacity);
+    sheet.getRange(targetRow, col('1食あたりg') + 1).setValue(c.serving);
+    sheet.getRange(targetRow, col('タンパク質g/食') + 1).setValue(c.protein);
+    sheet.getRange(targetRow, col('ステータス') + 1).setValue('準備中');
+    sheet.getRange(targetRow, col('画像URL') + 1).setValue('');
+    if (col('備考') !== -1) sheet.getRange(targetRow, col('備考') + 1).setValue('');
+
+    setDerivedFormulas_(sheet, header, targetRow);
+
+    lines.push(c.id + ' / ' + c.flavor + ' 追加（準備中）');
+  });
+
+  const message = lines.join('\n') +
+    '\n\n次の手順: collectImages() で画像候補を確認 → 画像URLを反映 → ステータスを公開に変更。';
+
+  Logger.log(message);
+  return message;
+}
