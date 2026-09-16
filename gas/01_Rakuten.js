@@ -3520,3 +3520,75 @@ function addSavasFlavors() {
   Logger.log(message);
   return message;
 }
+
+
+/**
+ * ザバス追加5件について、画像確認シートの順位1位の画像をマスタに反映し、
+ * 公開に切り替えたうえで runPriceFetch() と buildAllPages() まで一括で行う。
+ */
+function publishSavasFlavors() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const imageSheet = spreadsheet.getSheetByName(CONFIG.IMAGE_CHECK_SHEET_NAME);
+  const masterSheet = spreadsheet.getSheetByName(CONFIG.MASTER_SHEET_NAME);
+
+  const targetIds = [
+    'sav-whey-caramel-980',
+    'sav-whey-milktea-980',
+    'sav-whey-strawberry-980',
+    'sav-whey-banana-980',
+    'sav-whey-matcha-800'
+  ];
+
+  const imgValues = imageSheet.getDataRange().getValues();
+  const imgHeader = imgValues[0];
+  const imgIdCol = imgHeader.indexOf('商品ID');
+  const imgRankCol = imgHeader.indexOf('順位');
+  const imgImageCol = imgHeader.indexOf('画像');
+
+  const found = {};
+
+  for (let i = 1; i < imgValues.length; i++) {
+    const productId = String(imgValues[i][imgIdCol]).trim();
+    const rank = Number(imgValues[i][imgRankCol]);
+
+    if (targetIds.indexOf(productId) === -1 || rank !== 1) continue;
+
+    const formula = imageSheet.getRange(i + 1, imgImageCol + 1).getFormula();
+    const match = formula.match(/=IMAGE\("([^"]+)"/);
+    if (match) found[productId] = match[1];
+  }
+
+  const masterValues = masterSheet.getDataRange().getValues();
+  const header = masterValues[0];
+  const productIdCol = header.indexOf('商品ID');
+  const imageUrlCol = header.indexOf('画像URL');
+  const statusCol = header.indexOf('ステータス');
+
+  const lines = [];
+
+  targetIds.forEach(function (productId) {
+    for (let i = 1; i < masterValues.length; i++) {
+      if (String(masterValues[i][productIdCol]).trim() === productId) {
+        if (found[productId]) {
+          masterSheet.getRange(i + 1, imageUrlCol + 1).setValue(found[productId]);
+        }
+        masterSheet.getRange(i + 1, statusCol + 1).setValue('公開');
+        lines.push(productId + ': 画像=' + (found[productId] || '(見つからず)') + ' / 公開に変更');
+        return;
+      }
+    }
+    lines.push(productId + ': マスタに行が見つかりませんでした');
+  });
+
+  Logger.log('--- runPriceFetch 開始 ---');
+  const fetchResult = runPriceFetch();
+  Logger.log(fetchResult);
+
+  Logger.log('--- buildAllPages 開始 ---');
+  buildAllPages();
+  Logger.log('buildAllPages 完了');
+
+  const message = lines.join('\n') + '\n\n' + fetchResult + '\n\nサイトへの反映も完了しました。';
+  Logger.log(message);
+  return message;
+}
