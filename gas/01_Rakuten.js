@@ -2785,3 +2785,61 @@ function publishDnsFlavorVariants() {
   Logger.log(message);
   return message;
 }
+
+/**
+ * DNS プロテインホエイ100 全行の「タンパク質g/食」を正しい値に修正する。
+ *
+ * マスタには26.5gと入っていたが、楽天の商品ページ（カフェオレ・リッチバニラ・
+ * プレミアムチョコレートの3種で確認）はいずれも「1食35gあたり たんぱく質24.2g」。
+ * 古い/誤った数値だったので、公開・停止・準備中を問わず dns-whey100- で
+ * 始まる全行を24.2gに揃える。
+ *
+ * 修正後は buildAllPages() で20gあたり単価のランキングを再計算する。
+ */
+function correctDnsWhey100Protein() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+
+  if (!sheet) {
+    throw new Error('シートが見つかりません: ' + CONFIG.MASTER_SHEET_NAME);
+  }
+
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+  const col = {};
+  header.forEach(function (name, index) {
+    const key = String(name).trim();
+    if (key && col[key] === undefined) col[key] = index;
+  });
+
+  const productIdCol = col['商品ID'];
+  const proteinCol = col['タンパク質g/食'];
+
+  if (productIdCol === undefined || proteinCol === undefined) {
+    throw new Error('マスタの列構成が想定と違います（商品ID / タンパク質g/食）。');
+  }
+
+  const CORRECT_VALUE = 24.2;
+  const lines = [];
+
+  for (let i = 1; i < values.length; i++) {
+    const productId = String(values[i][productIdCol]).trim();
+
+    if (productId.indexOf('dns-whey100-') !== 0) {
+      continue;
+    }
+
+    const before = values[i][proteinCol];
+    sheet.getRange(i + 1, proteinCol + 1).setValue(CORRECT_VALUE);
+    lines.push(productId + ': ' + before + ' → ' + CORRECT_VALUE);
+  }
+
+  Logger.log('修正した行:\n' + lines.join('\n'));
+
+  Logger.log('--- buildAllPages 開始 ---');
+  buildAllPages();
+  Logger.log('buildAllPages 完了');
+
+  const message = lines.length + '行を修正しました。\n' + lines.join('\n') + '\n\nランキングを再計算しました。';
+  Logger.log(message);
+  return message;
+}
