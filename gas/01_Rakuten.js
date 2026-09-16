@@ -3976,7 +3976,7 @@ function addDnsProX() {
     sheet.getRange(targetRow, col('商品ID') + 1).setValue(c.id);
     sheet.getRange(targetRow, col('形態') + 1).setValue('RTD');
     sheet.getRange(targetRow, col('シリーズ') + 1).setValue('プロエックス');
-    sheet.getRange(targetRow, col('製法') + 1).setValue('wpi');
+    sheet.getRange(targetRow, col('製法') + 1).setValue('WPI');
     sheet.getRange(targetRow, col('味') + 1).setValue(c.flavor);
     sheet.getRange(targetRow, col('容量g') + 1).setValue(350);
     sheet.getRange(targetRow, col('1食あたりg') + 1).setValue(350);
