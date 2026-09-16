@@ -3922,3 +3922,68 @@ function testDnsProX() {
   Logger.log(out);
   return out;
 }
+
+
+/**
+ * DNS プロエックス(Pro-X)のRTDドリンク2件をマスタに追加する。
+ * dns-whey100-630 の行を複製（copyToで数式ごと）し、ブランド関連の項目は
+ * そのまま流用、形態・シリーズ・製法・容量・味・検索キーワードは
+ * プロエックス用に上書きする。
+ */
+function addDnsProX() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+  const lastCol = header.length;
+
+  function col(name) {
+    const index = header.indexOf(name);
+    if (index === -1) throw new Error('列が見つかりません: ' + name);
+    return index;
+  }
+
+  let baseRow = -1;
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][col('商品ID')]).trim() === 'dns-whey100-630') {
+      baseRow = i + 1;
+      break;
+    }
+  }
+  if (baseRow === -1) throw new Error('複製元の行が見つかりません: dns-whey100-630');
+
+  const candidates = [
+    { id: 'dns-prox-apple-350', flavor: 'アップル', keyword: 'DNS プロエックス アップル 350ml' },
+    { id: 'dns-prox-mango-350', flavor: 'マンゴー', keyword: 'DNS プロエックス マンゴー 350ml' }
+  ];
+
+  const lines = [];
+
+  candidates.forEach(function (c) {
+    const targetRow = sheet.getLastRow() + 1;
+    sheet.getRange(baseRow, 1, 1, lastCol).copyTo(sheet.getRange(targetRow, 1, 1, lastCol));
+
+    sheet.getRange(targetRow, col('商品ID') + 1).setValue(c.id);
+    sheet.getRange(targetRow, col('形態') + 1).setValue('RTD');
+    sheet.getRange(targetRow, col('シリーズ') + 1).setValue('プロエックス');
+    sheet.getRange(targetRow, col('製法') + 1).setValue('wpi');
+    sheet.getRange(targetRow, col('味') + 1).setValue(c.flavor);
+    sheet.getRange(targetRow, col('容量g') + 1).setValue(350);
+    sheet.getRange(targetRow, col('1食あたりg') + 1).setValue(350);
+    sheet.getRange(targetRow, col('タンパク質g/食') + 1).setValue(28.8);
+    sheet.getRange(targetRow, col('検索キーワード') + 1).setValue(c.keyword);
+    sheet.getRange(targetRow, col('ステータス') + 1).setValue('準備中');
+    sheet.getRange(targetRow, col('画像URL') + 1).setValue('');
+    if (col('体験メモ') !== -1) sheet.getRange(targetRow, col('体験メモ') + 1).setValue('');
+    if (col('備考') !== -1) sheet.getRange(targetRow, col('備考') + 1).setValue('');
+
+    setDerivedFormulas_(sheet, header, targetRow);
+
+    lines.push(c.id + ' / ' + c.flavor + ' 追加（準備中）');
+  });
+
+  const message = lines.join('\n') +
+    '\n\n次の手順: collectImages() で画像候補を確認 → 画像URLを反映 → ステータスを公開に変更。';
+
+  Logger.log(message);
+  return message;
+}
