@@ -935,3 +935,32 @@ function toChips_(groups, dir) {
     };
   });
 }
+
+/**
+ * 一時的な棚卸し用関数。商品マスタの中身を1行1商品のテキストで出す。
+ * 実行後、実行ログ（表示 > 実行数、または実行後に出るログ）をコピーして
+ * チャットに貼ってもらう想定。実行後はこの関数を消してよい。
+ */
+function dumpMasterInventory_() {
+  const products = readMasterFull_();
+
+  const lines = products.map(function (p) {
+    return [
+      p.productId,
+      p.maker,
+      p.brand,
+      p.series,
+      p.flavor,
+      p.form,
+      p.capacity || '',
+      p.method,
+      p.status
+    ].join(' | ');
+  });
+
+  const header = '商品ID | メーカー | ブランド | シリーズ | 味 | 形態 | 容量g | 製法 | ステータス';
+  const out = header + '\n' + lines.join('\n') + '\n\n件数: ' + products.length;
+
+  Logger.log(out);
+  return out;
+}
