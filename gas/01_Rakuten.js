@@ -2985,7 +2985,10 @@ function dumpProductRows() {
 
 /**
  * ビーレジェンド・マイプロテインの既存の停止行（栄養成分は検証済み）を、
- * 現在のRakutenで拾えるか diagnoseProduct でまとめて再テストする。
+ * 現在のRakutenで拾えるか再テストする。
+ *
+ * readMaster_ はステータス「停止」の行を無条件で除外する仕様のため、
+ * diagnoseProduct は使わず、シートの行を直接読んで判定する。
  * マスタにもシートにも書き込まない。
  */
 function retestStoppedFlavors() {
@@ -2996,10 +2999,103 @@ function retestStoppedFlavors() {
     'myp-impact-milktea-1000'
   ];
 
-  const out = targetIds.map(function (id) {
-    return '========== ' + id + ' ==========\n' + diagnoseProduct(id);
-  }).join('\n\n');
+  const credentials = getCredentials_();
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
 
+  function col(name) {
+    const index = header.indexOf(name);
+    if (index === -1) throw new Error('列が見つかりません: ' + name);
+    return index;
+  }
+
+  const lines = [];
+
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    const productId = String(row[col('商品ID')]).trim();
+
+    if (targetIds.indexOf(productId) === -1) {
+      continue;
+    }
+
+    const capacity = Number(row[col('容量g')]) || null;
+    const servingSize = Number(row[col('1食あたりg')]) || null;
+    const proteinPerServing = Number(row[col('タンパク質g/食')]) || null;
+    const keyword = String(row[col('検索キーワード')]).trim();
+
+    const product = {
+      productId: productId,
+      brand: String(row[col('ブランド')]).trim(),
+      series: String(row[col('シリーズ')]).trim(),
+      flavor: String(row[col('味')]).trim(),
+      method: String(row[col('製法')]).trim().toLowerCase(),
+      form: String(row[col('形態')]).trim(),
+      capacity: capacity,
+      servingSize: servingSize,
+      proteinPerServing: proteinPerServing,
+      keyword: keyword,
+      status: '公開',
+      totalProtein: (capacity && servingSize && proteinPerServing)
+        ? (capacity / servingSize) * proteinPerServing
+        : null
+    };
+
+    if (!keyword) {
+      lines.push(productId + ': 検索キーワード未入力');
+      continue;
+    }
+
+    let items;
+    try {
+      items = searchRakuten_(credentials, keyword, CONFIG.FETCH_HITS, {
+        pages: CONFIG.FETCH_PAGES,
+        ngKeyword: buildNgKeyword_(product.form)
+      });
+    } catch (e) {
+      lines.push(productId + ' [' + keyword + ']: エラー ' + e.message);
+      Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+      continue;
+    }
+
+    if (items.length === 0) {
+      lines.push(productId + ' [' + keyword + ']: ヒット0件');
+      Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+      continue;
+    }
+
+    const reasons = {};
+    let best = null;
+
+    items.forEach(function (item) {
+      const evaluated = evaluateItem_(product, item);
+      if (!evaluated.rejectReason) {
+        if (!best || item.itemPrice < best.item.itemPrice) {
+          best = { item: item, evaluated: evaluated };
+        }
+      } else {
+        reasons[evaluated.rejectReason] = (reasons[evaluated.rejectReason] || 0) + 1;
+      }
+    });
+
+    if (best) {
+      lines.push(
+        productId + ' [' + keyword + ']: 採用可 — ' + best.item.itemPrice + '円 / ' +
+        best.item.shopName + (best.evaluated.pricePer20g ? ' / 20gあたり' + best.evaluated.pricePer20g + '円' : '') +
+        '\n      ' + best.item.cleanName
+      );
+    } else {
+      const reasonSummary = Object.keys(reasons)
+        .map(function (r) { return r + ':' + reasons[r] + '件'; })
+        .join(' / ');
+      lines.push(productId + ' [' + keyword + ']: 採用できる結果が0件（' + items.length + '件中 ' + reasonSummary + '）');
+    }
+
+    Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+  }
+
+  const out = lines.join('\n\n');
   Logger.log(out);
   return out;
 }
