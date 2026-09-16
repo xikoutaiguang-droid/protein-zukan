@@ -2443,3 +2443,93 @@ function appendToSheet_(sheetName, header, rows) {
   const startRow = sheet.getLastRow() + 1;
   sheet.getRange(startRow, 1, rows.length, header.length).setValues(rows);
 }
+
+// ============================================================
+// 一時関数（DNS フレーバー追加候補の検証。用が済んだら削除して良い）
+// ============================================================
+
+/**
+ * DNSプロテインホエイ100の追加候補フレーバーが、本番と同じ判定ロジックで
+ * 実際に単品として拾えるかどうかを確認する。マスタにもシートにも書き込まない。
+ */
+function testDnsFlavorCandidates() {
+  const credentials = getCredentials_();
+
+  const candidates = [
+    { flavor: 'リッチバニラ', keyword: 'DNS プロテインホエイ100 630g リッチバニラ' },
+    { flavor: 'チョコレート', keyword: 'DNS プロテインホエイ100 630g プレミアムチョコレート' },
+    { flavor: 'イチゴ', keyword: 'DNS プロテインホエイ100 630g いちごミルク' },
+    { flavor: 'バナナ', keyword: 'DNS プロテインホエイ100 630g バナナオレ' },
+    { flavor: 'マンゴー', keyword: 'DNS プロテインホエイ100 630g トロピカルマンゴー' }
+  ];
+
+  const lines = [];
+
+  candidates.forEach(function (c) {
+    const product = {
+      productId: 'test-dns-' + c.flavor,
+      brand: 'DNS',
+      series: '',
+      flavor: c.flavor,
+      method: 'wpc',
+      form: 'パウダー',
+      capacity: 630,
+      servingSize: 35,
+      proteinPerServing: 24.2,
+      keyword: c.keyword,
+      status: '公開',
+      totalProtein: (630 / 35) * 24.2
+    };
+
+    let items;
+    try {
+      items = searchRakuten_(credentials, c.keyword, CONFIG.FETCH_HITS, {
+        pages: CONFIG.FETCH_PAGES,
+        ngKeyword: buildNgKeyword_(product.form)
+      });
+    } catch (e) {
+      lines.push(c.flavor + ' [' + c.keyword + ']: エラー ' + e.message);
+      Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+      return;
+    }
+
+    if (items.length === 0) {
+      lines.push(c.flavor + ' [' + c.keyword + ']: ヒット0件');
+      Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+      return;
+    }
+
+    const reasons = {};
+    let best = null;
+
+    items.forEach(function (item) {
+      const evaluated = evaluateItem_(product, item);
+      if (!evaluated.rejectReason) {
+        if (!best || item.itemPrice < best.item.itemPrice) {
+          best = { item: item, evaluated: evaluated };
+        }
+      } else {
+        reasons[evaluated.rejectReason] = (reasons[evaluated.rejectReason] || 0) + 1;
+      }
+    });
+
+    if (best) {
+      lines.push(
+        c.flavor + ' [' + c.keyword + ']: 採用可 — ' + best.item.itemPrice + '円 / ' +
+        best.item.shopName + ' / 20gあたり' + best.evaluated.pricePer20g + '円' +
+        '\n      ' + best.item.cleanName
+      );
+    } else {
+      const reasonSummary = Object.keys(reasons)
+        .map(function (r) { return r + ':' + reasons[r] + '件'; })
+        .join(' / ');
+      lines.push(c.flavor + ' [' + c.keyword + ']: 採用できる結果が0件（' + items.length + '件中 ' + reasonSummary + '）');
+    }
+
+    Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+  });
+
+  const out = lines.join('\n\n');
+  Logger.log(out);
+  return out;
+}
