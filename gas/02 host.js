@@ -75,54 +75,66 @@ function uploadToGithub_(path, blob) {
   const token = prop_('GITHUB_TOKEN');
   const api = GITHUB.API_BASE + '/repos/' + repo + '/contents/' + encodeURI(path);
 
-  // 既存ファイルを上書きするには sha が要る
-  let sha = null;
-  const check = UrlFetchApp.fetch(api + '?ref=' + encodeURIComponent(branch), {
-    method: 'get',
-    muteHttpExceptions: true,
-    headers: ghHeaders_(token)
-  });
+  // 短時間に大量のファイルを連続コミットすると、直前にGETしたshaが
+  // 別のコミットの反映タイミングとぶつかって409（衝突）になることがある。
+  // 一度だけなら再度shaを取り直して書き直せば直るので、数回まで再試行する。
+  const MAX_ATTEMPTS = 3;
 
-  const checkCode = check.getResponseCode();
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    // 既存ファイルを上書きするには sha が要る
+    let sha = null;
+    const check = UrlFetchApp.fetch(api + '?ref=' + encodeURIComponent(branch), {
+      method: 'get',
+      muteHttpExceptions: true,
+      headers: ghHeaders_(token)
+    });
 
-  if (checkCode === 200) {
-    sha = JSON.parse(check.getContentText()).sha;
-  } else if (checkCode === 401 || checkCode === 403) {
-    throw new Error(
-      'GitHubの認証に失敗しました（' + checkCode + '）。' +
-      'トークンの権限と、Repository access に ' + repo + ' が含まれているか確認してください。'
-    );
-  } else if (checkCode === 404) {
-    // ファイルが無いだけなら新規作成に進む。
-    // リポジトリ自体が無い場合もここに来るので、後続のPUTで判別する。
-    sha = null;
-  }
+    const checkCode = check.getResponseCode();
 
-  const payload = {
-    message: 'update ' + path,
-    content: Utilities.base64Encode(blob.getBytes()),
-    branch: branch
-  };
+    if (checkCode === 200) {
+      sha = JSON.parse(check.getContentText()).sha;
+    } else if (checkCode === 401 || checkCode === 403) {
+      throw new Error(
+        'GitHubの認証に失敗しました（' + checkCode + '）。' +
+        'トークンの権限と、Repository access に ' + repo + ' が含まれているか確認してください。'
+      );
+    } else if (checkCode === 404) {
+      // ファイルが無いだけなら新規作成に進む。
+      // リポジトリ自体が無い場合もここに来るので、後続のPUTで判別する。
+      sha = null;
+    }
 
-  if (sha) {
-    payload.sha = sha;
-  }
+    const payload = {
+      message: 'update ' + path,
+      content: Utilities.base64Encode(blob.getBytes()),
+      branch: branch
+    };
 
-  const res = UrlFetchApp.fetch(api, {
-    method: 'put',
-    contentType: 'application/json',
-    muteHttpExceptions: true,
-    headers: ghHeaders_(token),
-    payload: JSON.stringify(payload)
-  });
+    if (sha) {
+      payload.sha = sha;
+    }
 
-  const code = res.getResponseCode();
+    const res = UrlFetchApp.fetch(api, {
+      method: 'put',
+      contentType: 'application/json',
+      muteHttpExceptions: true,
+      headers: ghHeaders_(token),
+      payload: JSON.stringify(payload)
+    });
 
-  if (code !== 200 && code !== 201) {
+    const code = res.getResponseCode();
+
+    if (code === 200 || code === 201) {
+      return 'https://raw.githubusercontent.com/' + repo + '/' + branch + '/' + encodeURI(path);
+    }
+
+    if (code === 409 && attempt < MAX_ATTEMPTS) {
+      Utilities.sleep(500);
+      continue;
+    }
+
     throw new Error('GitHubへの書き込みに失敗しました（' + code + '）: ' + res.getContentText().slice(0, 300));
   }
-
-  return 'https://raw.githubusercontent.com/' + repo + '/' + branch + '/' + encodeURI(path);
 }
 
 /**
