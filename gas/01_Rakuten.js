@@ -1670,12 +1670,19 @@ function extractWeights_(name) {
 
     if (!isFinite(value) || value <= 0) continue;
 
-    // 「高吸収タンパク質18g」のような、容量ではなくタンパク質量を指す
-    // 「Ng」表記を容量として拾わないようにする。
+    // 「高吸収タンパク質18g」「プロテイン20g」のような、容量ではなく
+    // タンパク質量を指す「Ng」表記を容量として拾わないようにする。
     // これを拾うと、直前の CAPACITY_AMBIGUOUS_REJECT の判定で
     // 正しい容量の商品まで「容量が違う」として除外してしまう。
-    const before = text.slice(Math.max(0, m.index - 10), m.index);
-    if (/(タンパク質|たんぱく質|蛋白質|プロテイン量|プロテイン|protein)\s*$/i.test(before)) {
+    //
+    // 「プロテイン」だけは「ホエイプロテイン1000g」のように商品名の
+    // 一部としてサイズの直前に来ることも多いため、仮名・漢字にくっつかず
+    // 単独で使われている（直前が語の切れ目になっている）ときだけ除外する。
+    const before = text.slice(Math.max(0, m.index - 12), m.index);
+    if (/(タンパク質|たんぱく質|蛋白質|protein)\s*$/i.test(before)) {
+      continue;
+    }
+    if (/プロテイン\s*$/.test(before) && !/[぀-ヿ一-鿿]プロテイン\s*$/.test(before)) {
       continue;
     }
 
