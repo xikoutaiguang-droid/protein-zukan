@@ -3837,3 +3837,88 @@ function publishOikosProChoco() {
   Logger.log(message);
   return message;
 }
+
+
+/**
+ * DNS プロエックス(Pro-X)のRTDドリンク追加候補を、本番と同じ判定ロジックで検証する。
+ * 楽天の商品ページで確認した実測値: 1本350mlあたり たんぱく質28.8g、WPI。
+ * マスタにもシートにも書き込まない。
+ */
+function testDnsProX() {
+  const credentials = getCredentials_();
+
+  const candidates = [
+    { flavor: 'アップル', keyword: 'DNS プロエックス アップル 350ml' },
+    { flavor: 'マンゴー', keyword: 'DNS プロエックス マンゴー 350ml' }
+  ];
+
+  const lines = [];
+
+  candidates.forEach(function (c) {
+    const product = {
+      productId: 'test-dns-prox-' + c.flavor,
+      brand: 'DNS',
+      series: 'プロエックス',
+      flavor: c.flavor,
+      method: 'wpi',
+      form: 'RTD',
+      capacity: 350,
+      servingSize: 350,
+      proteinPerServing: 28.8,
+      keyword: c.keyword,
+      status: '公開',
+      totalProtein: 28.8
+    };
+
+    let items;
+    try {
+      items = searchRakuten_(credentials, c.keyword, CONFIG.FETCH_HITS, {
+        pages: CONFIG.FETCH_PAGES,
+        ngKeyword: buildNgKeyword_(product.form)
+      });
+    } catch (e) {
+      lines.push(c.flavor + ' [' + c.keyword + ']: エラー ' + e.message);
+      Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+      return;
+    }
+
+    if (items.length === 0) {
+      lines.push(c.flavor + ' [' + c.keyword + ']: ヒット0件');
+      Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+      return;
+    }
+
+    const reasons = {};
+    let best = null;
+
+    items.forEach(function (item) {
+      const evaluated = evaluateItem_(product, item);
+      if (!evaluated.rejectReason) {
+        if (!best || (evaluated.pricePer20g !== null && evaluated.pricePer20g < (best.evaluated.pricePer20g || Infinity))) {
+          best = { item: item, evaluated: evaluated };
+        }
+      } else {
+        reasons[evaluated.rejectReason] = (reasons[evaluated.rejectReason] || 0) + 1;
+      }
+    });
+
+    if (best) {
+      lines.push(
+        c.flavor + ' [' + c.keyword + ']: 採用可 — ' + best.item.itemPrice + '円 / ' +
+        best.item.shopName + ' / 入数' + best.evaluated.quantity + ' / 20gあたり' + best.evaluated.pricePer20g + '円' +
+        '\n      ' + best.item.cleanName
+      );
+    } else {
+      const reasonSummary = Object.keys(reasons)
+        .map(function (r) { return r + ':' + reasons[r] + '件'; })
+        .join(' / ');
+      lines.push(c.flavor + ' [' + c.keyword + ']: 採用できる結果が0件（' + items.length + '件中 ' + reasonSummary + '）');
+    }
+
+    Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+  });
+
+  const out = lines.join('\n\n');
+  Logger.log(out);
+  return out;
+}
