@@ -3592,3 +3592,44 @@ function publishSavasFlavors() {
   Logger.log(message);
   return message;
 }
+
+
+/**
+ * belegend-peach-900 の栄養成分を、ユーザーが確認した正しい値に修正する。
+ * 標準WPCライン（ベリベリベリー）の実測値（30g/21.5g）を流用していたが、
+ * OICネクターピーチは実際には1食35gあたりタンパク質20.2gだった。
+ */
+function fixBelegendPeachProtein() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+
+  function col(name) {
+    const index = header.indexOf(name);
+    if (index === -1) throw new Error('列が見つかりません: ' + name);
+    return index;
+  }
+
+  let targetRow = -1;
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][col('商品ID')]).trim() === 'belegend-peach-900') {
+      targetRow = i + 1;
+      break;
+    }
+  }
+  if (targetRow === -1) throw new Error('行が見つかりません: belegend-peach-900');
+
+  sheet.getRange(targetRow, col('1食あたりg') + 1).setValue(35);
+  sheet.getRange(targetRow, col('タンパク質g/食') + 1).setValue(20.2);
+  if (col('備考') !== -1) {
+    sheet.getRange(targetRow, col('備考') + 1).setValue('');
+  }
+
+  Logger.log('--- buildAllPages 開始 ---');
+  buildAllPages();
+  Logger.log('buildAllPages 完了');
+
+  const message = 'belegend-peach-900 を 1食35g/タンパク質20.2g に修正しました。ランキングを再計算しました。';
+  Logger.log(message);
+  return message;
+}
