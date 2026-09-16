@@ -3679,3 +3679,52 @@ function fixBelegendPeachProtein() {
   Logger.log(message);
   return message;
 }
+
+
+/**
+ * オイコスPRO リッチチョコの追加候補を、本番と同じ判定ロジックで検証する。
+ * 既存の oikos-pro-vanilla と同じ 240ml/25gタンパク質を使う
+ * （どちらも「高吸収タンパク質25g」と表記されており、同じPROラインの値）。
+ * マスタにもシートにも書き込まない。
+ */
+function testOikosProChoco() {
+  const credentials = getCredentials_();
+
+  const product = {
+    productId: 'test-oikos-pro-choco',
+    brand: 'オイコス',
+    series: '',
+    flavor: 'リッチチョコ',
+    method: 'mix',
+    form: 'RTD',
+    capacity: 240,
+    servingSize: 240,
+    proteinPerServing: 25,
+    keyword: 'オイコス PRO プロテインドリンク リッチチョコ 240ml',
+    status: '公開',
+    totalProtein: 25
+  };
+
+  const items = searchRakuten_(credentials, product.keyword, CONFIG.FETCH_HITS, {
+    pages: CONFIG.FETCH_PAGES,
+    ngKeyword: buildNgKeyword_(product.form)
+  });
+
+  const lines = [];
+
+  if (items.length === 0) {
+    lines.push('ヒット0件');
+  } else {
+    items.forEach(function (item, index) {
+      const evaluated = evaluateItem_(product, item);
+      lines.push(
+        (index + 1) + '位 | ' + item.itemPrice + '円 | ' + (evaluated.rejectReason || '★採用可') +
+        '\n      ' + item.cleanName + ' / ' + item.shopName
+      );
+    });
+  }
+
+  const out = lines.join('\n');
+  Logger.log(out);
+  return out;
+}
