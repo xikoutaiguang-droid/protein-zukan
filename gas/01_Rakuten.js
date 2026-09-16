@@ -1670,23 +1670,26 @@ function extractWeights_(name) {
 
     if (!isFinite(value) || value <= 0) continue;
 
+    const grams = m[2].toLowerCase() === 'kg' ? value * 1000 : value;
+
     // 「高吸収タンパク質18g」「プロテイン20g」のような、容量ではなく
     // タンパク質量を指す「Ng」表記を容量として拾わないようにする。
     // これを拾うと、直前の CAPACITY_AMBIGUOUS_REJECT の判定で
     // 正しい容量の商品まで「容量が違う」として除外してしまう。
     //
-    // 「プロテイン」だけは「ホエイプロテイン1000g」のように商品名の
-    // 一部としてサイズの直前に来ることも多いため、仮名・漢字にくっつかず
-    // 単独で使われている（直前が語の切れ目になっている）ときだけ除外する。
-    const before = text.slice(Math.max(0, m.index - 12), m.index);
-    if (/(タンパク質|たんぱく質|蛋白質|protein)\s*$/i.test(before)) {
-      continue;
-    }
-    if (/プロテイン\s*$/.test(before) && !/[぀-ヿ一-鿿]プロテイン\s*$/.test(before)) {
-      continue;
+    // 「プロテイン」は「ホエイ プロテイン 1kg」のようにスペースを挟んで
+    // 商品名の一部になっていることも多く、直前の語のつながりだけでは
+    // 見分けがつかない。そこで、1食分のタンパク質量として現実的な
+    // 50g以下のときだけ「タンパク質を指している疑いあり」として見る
+    // （容量が50g以下の商品は他の除外条件で弾かれることが多く、
+    // ここで見逃しても実害は小さい）。
+    if (grams <= 50) {
+      const before = text.slice(Math.max(0, m.index - 12), m.index);
+      if (/(タンパク質|たんぱく質|蛋白質|プロテイン|protein)\s*$/i.test(before)) {
+        continue;
+      }
     }
 
-    const grams = m[2].toLowerCase() === 'kg' ? value * 1000 : value;
     found.push(grams);
   }
 
