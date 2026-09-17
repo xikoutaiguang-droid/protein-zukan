@@ -4066,3 +4066,40 @@ function publishDnsProX() {
   Logger.log(message);
   return message;
 }
+
+
+/**
+ * DNS プロエックス2件の「タグ」列を修正する。
+ * dns-whey100-630 の行を複製した際、タグ列の「WPC」がそのまま残っており、
+ * 実際はWPIなのにページの製法バッジが「WPC」と誤表示されていた。
+ */
+function fixDnsProXTags() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+  const productIdCol = header.indexOf('商品ID');
+  const tagCol = header.indexOf('タグ');
+
+  const targetIds = ['dns-prox-apple-350', 'dns-prox-mango-350'];
+  const lines = [];
+
+  for (let i = 1; i < values.length; i++) {
+    const productId = String(values[i][productIdCol]).trim();
+    if (targetIds.indexOf(productId) === -1) continue;
+
+    const before = String(values[i][tagCol]);
+    const after = before.replace(/WPC/g, 'WPI');
+    sheet.getRange(i + 1, tagCol + 1).setValue(after);
+    lines.push(productId + ': ' + before + ' → ' + after);
+  }
+
+  Logger.log(lines.join('\n'));
+
+  Logger.log('--- buildAllPages 開始 ---');
+  buildAllPages();
+  Logger.log('buildAllPages 完了');
+
+  const message = lines.join('\n') + '\n\nサイトへの反映も完了しました。';
+  Logger.log(message);
+  return message;
+}
