@@ -4146,3 +4146,120 @@ function listStoppedAndPending() {
   Logger.log(out);
   return out;
 }
+
+
+/**
+ * 今日の修正（容量誤認・タンパク質量誤認・小規模詰め合わせセット検出）で
+ * 拾えるようになったかもしれない、既存の停止/準備中商品をまとめて再テストする。
+ * 既存のマスタ行（栄養成分は入力済み）をそのまま使い、検索キーワードも既存のものを使う。
+ * マスタにもシートにも書き込まない。
+ */
+function retestKnownFailures() {
+  const targetIds = [
+    'belegend-berry-1000', 'belegend-banana-1000', 'grong-whey-basic-1000',
+    'ult-whey-choco-1000', 'myp-impact-choco-1000', 'valx-whey-choco-1000',
+    'alpron-whey-choco-1000', 'on-goldstandard-choco', 'bulk-bigwhey-1000',
+    'in-protein-musclefitplus-cafelate-840', 'in-protein-musclefit-vanilla-840',
+    'in-protein-musclefit-cocoa-840', 'in-protein-musclefit-ramune-840',
+    'in-protein-musclefit-caramel-840', 'in-protein-soyprotein-660',
+    'tanpact-milk', 'sav-protein-lychee-430', 'in-protein-cafeole-350',
+    'kentai-power-protein', 'dns-whey100-cafeole', 'dns-whey100-1000'
+  ];
+
+  const credentials = getCredentials_();
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+
+  function col(name) { return header.indexOf(name); }
+
+  const lines = [];
+
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    const productId = String(row[col('商品ID')]).trim();
+
+    if (targetIds.indexOf(productId) === -1) continue;
+
+    const capacity = Number(row[col('容量g')]) || null;
+    const servingSize = Number(row[col('1食あたりg')]) || null;
+    const proteinPerServing = Number(row[col('タンパク質g/食')]) || null;
+    const keyword = String(row[col('検索キーワード')]).trim();
+    const form = String(row[col('形態')]).trim();
+
+    if (!keyword) {
+      lines.push(productId + ': 検索キーワード未入力のためスキップ');
+      continue;
+    }
+    if (!capacity || !servingSize || !proteinPerServing) {
+      lines.push(productId + ': 容量/1食あたり/タンパク質のいずれか未入力のためスキップ（' + keyword + '）');
+      continue;
+    }
+
+    const product = {
+      productId: productId,
+      brand: String(row[col('ブランド')]).trim(),
+      series: String(row[col('シリーズ')]).trim(),
+      flavor: String(row[col('味')]).trim(),
+      method: String(row[col('製法')]).trim().toLowerCase(),
+      form: form,
+      capacity: capacity,
+      servingSize: servingSize,
+      proteinPerServing: proteinPerServing,
+      keyword: keyword,
+      status: '公開',
+      totalProtein: (capacity / servingSize) * proteinPerServing
+    };
+
+    let items;
+    try {
+      items = searchRakuten_(credentials, keyword, CONFIG.FETCH_HITS, {
+        pages: CONFIG.FETCH_PAGES,
+        ngKeyword: buildNgKeyword_(form)
+      });
+    } catch (e) {
+      lines.push(productId + ' [' + keyword + ']: エラー ' + e.message);
+      Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+      continue;
+    }
+
+    if (items.length === 0) {
+      lines.push(productId + ' [' + keyword + ']: ヒット0件');
+      Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+      continue;
+    }
+
+    const reasons = {};
+    let best = null;
+
+    items.forEach(function (item) {
+      const evaluated = evaluateItem_(product, item);
+      if (!evaluated.rejectReason) {
+        if (!best || item.itemPrice < best.item.itemPrice) {
+          best = { item: item, evaluated: evaluated };
+        }
+      } else {
+        reasons[evaluated.rejectReason] = (reasons[evaluated.rejectReason] || 0) + 1;
+      }
+    });
+
+    if (best) {
+      lines.push(
+        productId + ' [' + keyword + ']: 採用可 — ' + best.item.itemPrice + '円 / ' + best.item.shopName +
+        (best.evaluated.pricePer20g ? ' / 20gあたり' + best.evaluated.pricePer20g + '円' : '') +
+        '\n      ' + best.item.cleanName
+      );
+    } else {
+      const reasonSummary = Object.keys(reasons)
+        .map(function (r) { return r + ':' + reasons[r] + '件'; })
+        .join(' / ');
+      lines.push(productId + ' [' + keyword + ']: 採用できる結果が0件（' + items.length + '件中 ' + reasonSummary + '）');
+    }
+
+    Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+  }
+
+  const out = lines.join('\n\n');
+  Logger.log(out);
+  return out;
+}
