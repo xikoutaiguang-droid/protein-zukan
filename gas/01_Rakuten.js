@@ -4103,3 +4103,46 @@ function fixDnsProXTags() {
   Logger.log(message);
   return message;
 }
+
+
+/**
+ * マスタ全体の「停止」「準備中」商品を一覧化する。
+ * 今日いくつかの判定ロジックの不具合（容量誤認・タンパク質量誤認）を
+ * 直したので、以前は失敗していた商品が今なら拾えるかもしれない。
+ * 再テストの対象を選ぶための一覧。
+ */
+function listStoppedAndPending() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+
+  function col(name) { return header.indexOf(name); }
+
+  const idCol = col('商品ID');
+  const brandCol = col('ブランド');
+  const flavorCol = col('味');
+  const formCol = col('形態');
+  const capCol = col('容量g');
+  const statusCol = col('ステータス');
+  const keywordCol = col('検索キーワード');
+  const noteCol = col('備考');
+
+  const stopped = [];
+  const pending = [];
+
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    const status = String(row[statusCol]).trim();
+    const line = row[idCol] + ' | ' + row[brandCol] + ' | ' + row[flavorCol] + ' | ' +
+      row[formCol] + ' | ' + row[capCol] + 'g | [' + row[keywordCol] + '] | 備考:' + row[noteCol];
+
+    if (status === '停止') stopped.push(line);
+    if (status === '準備中') pending.push(line);
+  }
+
+  const out = '=== 停止 (' + stopped.length + '件) ===\n' + stopped.join('\n') +
+    '\n\n=== 準備中 (' + pending.length + '件) ===\n' + pending.join('\n');
+
+  Logger.log(out);
+  return out;
+}
