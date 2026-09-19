@@ -153,6 +153,60 @@ function putTextToGithub_(path, text, mimeType) {
 }
 
 /**
+ * GitHub上のファイルを削除する。
+ *
+ * マスタから外れた（停止/削除済みの）商品ページなど、孤立して
+ * 古い価格のまま残り続けるファイルを片付けるために使う。
+ * buildAllPages は新規追加・更新はするが削除はしないため、
+ * 不要になったページはこの関数で明示的に消す必要がある。
+ *
+ * @param {string} path リポジトリ内のパス（例 items/xxx/index.html）
+ * @return {boolean} 削除できたら true、そもそも無かったら false
+ */
+function deleteFromGithub_(path) {
+  const repo = prop_('GITHUB_REPO');
+  const branch = prop_('GITHUB_BRANCH', 'main');
+  const token = prop_('GITHUB_TOKEN');
+  const api = GITHUB.API_BASE + '/repos/' + repo + '/contents/' + encodeURI(path);
+
+  const check = UrlFetchApp.fetch(api + '?ref=' + encodeURIComponent(branch), {
+    method: 'get',
+    muteHttpExceptions: true,
+    headers: ghHeaders_(token)
+  });
+
+  if (check.getResponseCode() === 404) {
+    return false;
+  }
+
+  if (check.getResponseCode() !== 200) {
+    throw new Error('GitHubの確認に失敗しました（' + check.getResponseCode() + '）: ' + check.getContentText().slice(0, 300));
+  }
+
+  const sha = JSON.parse(check.getContentText()).sha;
+
+  const res = UrlFetchApp.fetch(api, {
+    method: 'delete',
+    contentType: 'application/json',
+    muteHttpExceptions: true,
+    headers: ghHeaders_(token),
+    payload: JSON.stringify({
+      message: 'delete ' + path,
+      sha: sha,
+      branch: branch
+    })
+  });
+
+  const code = res.getResponseCode();
+
+  if (code !== 200) {
+    throw new Error('GitHubからの削除に失敗しました（' + code + '）: ' + res.getContentText().slice(0, 300));
+  }
+
+  return true;
+}
+
+/**
  * リポジトリ内のパスから、サイト上の公開URLを組み立てる。
  * index.html はディレクトリのURLに畳む。
  */

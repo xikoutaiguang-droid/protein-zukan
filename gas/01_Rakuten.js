@@ -4369,3 +4369,41 @@ function publishThreeFixedProducts() {
   Logger.log(message);
   return message;
 }
+
+
+/**
+ * 孤立した古いページを削除する。
+ *
+ * bulk-bigwhey-1000 / kentai-power-protein / oikos-milk-vanilla は
+ * マスタ上ではすでに停止/存在しないが、過去に一度ビルドされた
+ * ページファイルがGitHubに残ったままだった（buildAllPagesは追加・更新は
+ * するが削除はしないため）。どこからもリンクされていないのに
+ * Googleにはクロールされ得る状態で、しかも価格が3週間以上前のまま
+ * 更新されないという実害があったため削除する。
+ */
+function cleanupOrphanedPages() {
+  const paths = [
+    'items/bulk-bigwhey-1000/index.html',
+    'items/kentai-power-protein/index.html',
+    'items/oikos-milk-vanilla/index.html'
+  ];
+
+  const lines = paths.map(function (path) {
+    try {
+      const deleted = deleteFromGithub_(path);
+      return path + ': ' + (deleted ? '削除しました' : 'そもそも存在しませんでした');
+    } catch (e) {
+      return path + ': エラー ' + e.message;
+    }
+  });
+
+  // sitemap.xmlや絞り込みページに残っている可能性があるビルド記録をクリアし、
+  // 次回のbuildAllPagesで正しい状態に作り直させる。
+  const record = loadBuildRecord_();
+  paths.forEach(function (path) { delete record[path]; });
+  saveBuildRecord_(record);
+
+  const message = lines.join('\n');
+  Logger.log(message);
+  return message;
+}
