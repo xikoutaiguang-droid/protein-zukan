@@ -4263,3 +4263,43 @@ function retestKnownFailures() {
   Logger.log(out);
   return out;
 }
+
+
+/**
+ * 再テストで採用可だった3件を復活させる。
+ *   - dns-whey100-cafeole: 1食あたりg/タンパク質g/食が未入力だったので補完
+ *     （35gの使い切りパックなので1食=35g、タンパク質はwhey100の実測値24.2gと同じ）
+ *   - valx-whey-choco-1000 / on-goldstandard-choco: 栄養成分は既に正しく入力済みで、
+ *     コード側の不具合（容量誤認・小規模詰め合わせセット検出漏れ）だけが原因だったので
+ *     ステータスを変えるだけでよい。
+ * いずれも画像URLが古い/無い可能性があるため、準備中にしてcollectImagesで選び直す。
+ */
+function reviveThreeFixedProducts() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+
+  function col(name) { return header.indexOf(name); }
+
+  const targetIds = ['dns-whey100-cafeole', 'valx-whey-choco-1000', 'on-goldstandard-choco'];
+  const lines = [];
+
+  for (let i = 1; i < values.length; i++) {
+    const productId = String(values[i][col('商品ID')]).trim();
+    if (targetIds.indexOf(productId) === -1) continue;
+
+    if (productId === 'dns-whey100-cafeole') {
+      sheet.getRange(i + 1, col('1食あたりg') + 1).setValue(35);
+      sheet.getRange(i + 1, col('タンパク質g/食') + 1).setValue(24.2);
+      setDerivedFormulas_(sheet, header, i + 1);
+    }
+
+    sheet.getRange(i + 1, col('ステータス') + 1).setValue('準備中');
+    sheet.getRange(i + 1, col('画像URL') + 1).setValue('');
+    lines.push(productId + ': 準備中に変更');
+  }
+
+  const message = lines.join('\n') + '\n\n次の手順: collectImages() → 画像確認 → 公開に変更。';
+  Logger.log(message);
+  return message;
+}
