@@ -4440,3 +4440,103 @@ function dumpArticleBody() {
   Logger.log(article.body);
   return article.body;
 }
+
+
+/**
+ * 5時間ほど席を外している間に裏取りした3件を検証する。
+ *   - belegend-banana-1000: マスタの「そんなバナナ」は現行ラインナップに無く、
+ *     後継の「ハンパないバナナ・オレ」(700g)に置き換え。1食30g/タンパク質20.4g。
+ *   - grong-whey-basic-1000: 味が未入力だったのでチョコレート風味で確認。
+ *     1000g、タンパク質は100gあたり72gという表記から1食30gで21.6gと算出。
+ *   - myp-impact-choco-1000: ナチュラルチョコレート、1000g。商品ページに
+ *     栄養成分表示が無かったため、同ラインのmyp-impact-milktea-1000の
+ *     実測値(30g/20.6g)を流用する想定。
+ * ULTORAのチョコレートは、公式ページが11種類から選ぶ形式で、他に単品固定
+ * ページも見つからなかったため、今回は対象外（停止のまま）。
+ * マスタにもシートにも書き込まない。
+ */
+function testAwayFindings() {
+  const credentials = getCredentials_();
+
+  const candidates = [
+    { id: 'belegend-banana-1000', brand: 'ビーレジェンド', method: 'wpc', flavor: 'ハンパないバナナ・オレ',
+      capacity: 700, servingSize: 30, proteinPerServing: 20.4,
+      keyword: 'ビーレジェンド ホエイプロテイン ハンパないバナナオレ 700g' },
+    { id: 'grong-whey-basic-1000', brand: 'グロング', method: 'wpc', flavor: 'チョコレート',
+      capacity: 1000, servingSize: 30, proteinPerServing: 21.6,
+      keyword: 'グロング ホエイプロテイン ベーシック チョコレート 1kg' },
+    { id: 'myp-impact-choco-1000', brand: 'マイプロテイン', method: 'wpc', flavor: 'ナチュラルチョコレート',
+      capacity: 1000, servingSize: 30, proteinPerServing: 20.6,
+      keyword: 'マイプロテイン Impact ホエイプロテイン ナチュラルチョコレート 1kg' }
+  ];
+
+  const lines = [];
+
+  candidates.forEach(function (c) {
+    const product = {
+      productId: c.id,
+      brand: c.brand,
+      series: '',
+      flavor: c.flavor,
+      method: c.method,
+      form: 'パウダー',
+      capacity: c.capacity,
+      servingSize: c.servingSize,
+      proteinPerServing: c.proteinPerServing,
+      keyword: c.keyword,
+      status: '公開',
+      totalProtein: (c.capacity / c.servingSize) * c.proteinPerServing
+    };
+
+    let items;
+    try {
+      items = searchRakuten_(credentials, c.keyword, CONFIG.FETCH_HITS, {
+        pages: CONFIG.FETCH_PAGES,
+        ngKeyword: buildNgKeyword_(product.form)
+      });
+    } catch (e) {
+      lines.push(c.id + ' [' + c.keyword + ']: エラー ' + e.message);
+      Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+      return;
+    }
+
+    if (items.length === 0) {
+      lines.push(c.id + ' [' + c.keyword + ']: ヒット0件');
+      Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+      return;
+    }
+
+    const reasons = {};
+    let best = null;
+
+    items.forEach(function (item) {
+      const evaluated = evaluateItem_(product, item);
+      if (!evaluated.rejectReason) {
+        if (!best || item.itemPrice < best.item.itemPrice) {
+          best = { item: item, evaluated: evaluated };
+        }
+      } else {
+        reasons[evaluated.rejectReason] = (reasons[evaluated.rejectReason] || 0) + 1;
+      }
+    });
+
+    if (best) {
+      lines.push(
+        c.id + ' [' + c.keyword + ']: 採用可 — ' + best.item.itemPrice + '円 / ' + best.item.shopName +
+        (best.evaluated.pricePer20g ? ' / 20gあたり' + best.evaluated.pricePer20g + '円' : '') +
+        '\n      ' + best.item.cleanName
+      );
+    } else {
+      const reasonSummary = Object.keys(reasons)
+        .map(function (r) { return r + ':' + reasons[r] + '件'; })
+        .join(' / ');
+      lines.push(c.id + ' [' + c.keyword + ']: 採用できる結果が0件（' + items.length + '件中 ' + reasonSummary + '）');
+    }
+
+    Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+  });
+
+  const out = lines.join('\n\n');
+  Logger.log(out);
+  return out;
+}
