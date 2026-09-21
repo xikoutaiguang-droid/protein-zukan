@@ -4407,3 +4407,18 @@ function cleanupOrphanedPages() {
   Logger.log(message);
   return message;
 }
+
+
+/**
+ * 記事一覧を href/タイトル/説明で確認する。
+ * 「あわせて読みたい」に使える記事の全体像を把握するため。
+ */
+function dumpArticleList() {
+  const articles = listArticles_();
+  const lines = articles.map(function (a) {
+    return a.href + ' | ' + a.title + ' | ' + (a.description || '');
+  });
+  const out = lines.join('\n') + '\n\n件数: ' + articles.length;
+  Logger.log(out);
+  return out;
+}
