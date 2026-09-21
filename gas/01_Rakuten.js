@@ -4592,3 +4592,149 @@ function retestBelegendBanana() {
   Logger.log(out);
   return out;
 }
+
+
+/**
+ * cleanItemName_ の【】容量保持修正で採用可となった3件を、既存の停止行に反映する。
+ * 3件とも商品ID自体はマスタに既存（栄養成分の再確認・キーワード修正が必要だっただけ）。
+ *   - belegend-banana-1000: 旧フレーバー「そんなバナナ」→後継「ハンパないバナナ・オレ」(700g)。
+ *     1食30g/タンパク質20.4g。
+ *   - grong-whey-basic-1000: 味が未入力だったのでチョコレート風味で確定。
+ *     1000g、1食30g/タンパク質21.6g（100gあたり72gの表記から算出）。
+ *   - myp-impact-choco-1000: ナチュラルチョコレート、1000g。商品ページに栄養成分表示が
+ *     無かったため、同ラインmyp-impact-milktea-1000の実測値(30g/20.6g)を流用、備考に明記。
+ * 更新前の値をログに残してから上書きする。ステータスは準備中にし、画像URLは空にして
+ * collectImages() で選び直す前提。
+ */
+function addThreeAwayFindingsFlavors() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+
+  function col(name) {
+    const index = header.indexOf(name);
+    if (index === -1) throw new Error('列が見つかりません: ' + name);
+    return index;
+  }
+
+  const updates = {
+    'belegend-banana-1000': {
+      '味': 'ハンパないバナナ・オレ',
+      '検索キーワード': 'ビーレジェンド ホエイプロテイン ハンパないバナナ・オレ 700g',
+      '容量g': 700,
+      '1食あたりg': 30,
+      'タンパク質g/食': 20.4
+    },
+    'grong-whey-basic-1000': {
+      '味': 'チョコレート',
+      '検索キーワード': 'グロング ホエイプロテイン ベーシック チョコレート 1kg',
+      '容量g': 1000,
+      '1食あたりg': 30,
+      'タンパク質g/食': 21.6
+    },
+    'myp-impact-choco-1000': {
+      '味': 'ナチュラルチョコレート',
+      '検索キーワード': 'マイプロテイン Impact ホエイプロテイン ナチュラルチョコレート 1kg',
+      '容量g': 1000,
+      '1食あたりg': 30,
+      'タンパク質g/食': 20.6,
+      '備考': '商品ページに栄養成分表示なし。同ラインmyp-impact-milktea-1000の実測値(30g/20.6g)を流用。'
+    }
+  };
+
+  const lines = [];
+
+  for (let i = 1; i < values.length; i++) {
+    const productId = String(values[i][col('商品ID')]).trim();
+    const fields = updates[productId];
+    if (!fields) continue;
+
+    const rowNum = i + 1;
+    const before = [];
+    const after = [];
+
+    Object.keys(fields).forEach(function (name) {
+      if (col(name) === -1) return;
+      before.push(name + ':' + values[i][col(name)]);
+      sheet.getRange(rowNum, col(name) + 1).setValue(fields[name]);
+      after.push(name + ':' + fields[name]);
+    });
+
+    sheet.getRange(rowNum, col('ステータス') + 1).setValue('準備中');
+    sheet.getRange(rowNum, col('画像URL') + 1).setValue('');
+    setDerivedFormulas_(sheet, header, rowNum);
+
+    lines.push(productId + ':\n  変更前 ' + before.join(' / ') + '\n  変更後 ' + after.join(' / ') + '\n  ステータス→準備中、画像URLクリア');
+  }
+
+  const message = lines.join('\n\n') + '\n\n次の手順: collectImages() で3件の画像候補を確認 → publishThreeAwayFindings() で画像反映・公開・runPriceFetch・buildAllPagesまで一括実行。';
+  Logger.log(message);
+  return message;
+}
+
+
+/**
+ * addThreeAwayFindingsFlavors() で準備中にした3件について、
+ * 画像確認シートの順位1位の画像をマスタに反映し、公開に切り替えたうえで
+ * runPriceFetch() と buildAllPages() まで一括で行う。
+ */
+function publishThreeAwayFindings() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const imageSheet = spreadsheet.getSheetByName(CONFIG.IMAGE_CHECK_SHEET_NAME);
+  const masterSheet = spreadsheet.getSheetByName(CONFIG.MASTER_SHEET_NAME);
+
+  const targetIds = ['belegend-banana-1000', 'grong-whey-basic-1000', 'myp-impact-choco-1000'];
+
+  const imgValues = imageSheet.getDataRange().getValues();
+  const imgHeader = imgValues[0];
+  const imgIdCol = imgHeader.indexOf('商品ID');
+  const imgRankCol = imgHeader.indexOf('順位');
+  const imgImageCol = imgHeader.indexOf('画像');
+
+  const found = {};
+
+  for (let i = 1; i < imgValues.length; i++) {
+    const productId = String(imgValues[i][imgIdCol]).trim();
+    const rank = Number(imgValues[i][imgRankCol]);
+
+    if (targetIds.indexOf(productId) === -1 || rank !== 1) continue;
+
+    const formula = imageSheet.getRange(i + 1, imgImageCol + 1).getFormula();
+    const match = formula.match(/=IMAGE\("([^"]+)"/);
+    if (match) found[productId] = match[1];
+  }
+
+  const masterValues = masterSheet.getDataRange().getValues();
+  const header = masterValues[0];
+  const productIdCol = header.indexOf('商品ID');
+  const imageUrlCol = header.indexOf('画像URL');
+  const statusCol = header.indexOf('ステータス');
+
+  const lines = [];
+
+  targetIds.forEach(function (productId) {
+    for (let i = 1; i < masterValues.length; i++) {
+      if (String(masterValues[i][productIdCol]).trim() === productId) {
+        if (found[productId]) {
+          masterSheet.getRange(i + 1, imageUrlCol + 1).setValue(found[productId]);
+        }
+        masterSheet.getRange(i + 1, statusCol + 1).setValue('公開');
+        lines.push(productId + ': 画像=' + (found[productId] || '(見つからず)') + ' / 公開に変更');
+        return;
+      }
+    }
+    lines.push(productId + ': マスタに行が見つかりませんでした');
+  });
+
+  Logger.log('--- runPriceFetch 開始 ---');
+  const fetchResult = runPriceFetch();
+  Logger.log(fetchResult);
+
+  Logger.log('--- buildAllPages 開始 ---');
+  buildAllPages();
+  Logger.log('buildAllPages 完了');
+
+  const message = lines.join('\n') + '\n\n' + fetchResult + '\n\nサイトへの反映も完了しました。';
+  Logger.log(message);
+  return message;
+}
