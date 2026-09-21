@@ -1821,12 +1821,17 @@ function extractPackCount_(name) {
  * 商品名から店舗の販促文言を取り除く。
  * 【最大10万P当選★要エントリー★8/20〜8/31】のような、
  * 時期が来れば消える文字列をそのまま保存しないための処理。
+ * ただし【700g】のように括弧内に容量表記が書かれているケースがあるため、
+ * 容量らしき数字+単位（g/kg/ml/L）を含む括弧は、括弧記号だけ外して中身は残す。
  */
 function cleanItemName_(name) {
+  const keepIfCapacity = function (match, inner) {
+    return /\d+\s*(?:kg|g|ml|l)\b/i.test(inner) ? inner : '';
+  };
   return String(name)
-    .replace(/【[^】]*】/g, '')
-    .replace(/\[[^\]]*\]/g, '')
-    .replace(/［[^］]*］/g, '')
+    .replace(/【([^】]*)】/g, keepIfCapacity)
+    .replace(/\[([^\]]*)\]/g, keepIfCapacity)
+    .replace(/［([^］]*)］/g, keepIfCapacity)
     .replace(/\s+/g, ' ')
     .trim();
 }
