@@ -634,3 +634,129 @@ function addArticle_saleWoMatanai() {
   Logger.log('記事を追加しました: sale-wo-matanai。次に buildAllPages() を実行してください。');
   return '記事を追加しました。次に buildAllPages() を実行してください。';
 }
+
+
+/**
+ * 一時関数。tsuzukanakatta記事の「1年ほど」を正確な「1年9か月ほど」に修正する。
+ * 新しい保管記事で同じ転職の話を扱うにあたり、ユーザーに確認したところ
+ * 正確な期間は1年9か月だったため、既存記事側も合わせる。
+ * 実行後はこの関数を消してよい。
+ */
+function fixTsuzukanakattaDuration() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ARTICLE.SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+
+  const idCol = header.indexOf('記事ID');
+  const bodyCol = header.indexOf('本文');
+
+  let targetRow = -1;
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][idCol]).trim() === 'tsuzukanakatta') {
+      targetRow = i + 1;
+      break;
+    }
+  }
+
+  if (targetRow === -1) {
+    throw new Error('記事が見つかりません: tsuzukanakatta');
+  }
+
+  let body = sheet.getRange(targetRow, bodyCol + 1).getValue();
+
+  const replacements = [
+    ['## 1年やめていた時期がある', '## 1年9か月ほどやめていた時期がある'],
+    ['そのまま**1年ほどジムを休会した。**', 'そのまま**1年9か月ほどジムを休会した。**'],
+    ['- 1年やめていた時期がある。理由は転職で、商品とは関係なかった', '- 1年9か月ほどやめていた時期がある。理由は転職で、商品とは関係なかった']
+  ];
+
+  const missing = [];
+  replacements.forEach(function (pair) {
+    if (body.indexOf(pair[0]) === -1) {
+      missing.push(pair[0]);
+    } else {
+      body = body.split(pair[0]).join(pair[1]);
+    }
+  });
+
+  if (missing.length > 0) {
+    throw new Error('本文中に見つからない文字列があります:\n' + missing.join('\n'));
+  }
+
+  sheet.getRange(targetRow, bodyCol + 1).setValue(body);
+
+  Logger.log('修正しました: tsuzukanakatta（1年ほど → 1年9か月ほど、3箇所）');
+  return '修正しました。次に buildAllPages() を実行してください。';
+}
+
+/**
+ * 投稿用の一時関数。「hokan-basho」記事を「記事」シートに追加する。
+ * 実行後はこの関数を消してよい。
+ */
+function addArticle_hokanBasho() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ARTICLE.SHEET_NAME);
+
+  if (!sheet) {
+    throw new Error('「記事」シートが見つかりません。先に setupArticleSheet() を実行してください。');
+  }
+
+  const body = [
+    'プロテインを飲む生活を続けるうえで、地味に効いてくるのが保管場所だった。',
+    '',
+    '一時期、完全に手放したことがある。',
+    '',
+    '## 保管場所がなくて、処分した',
+    '',
+    '[転職でジムを1年9か月ほど休会していた時期がある](/tsuzukanakatta/)。',
+    '',
+    '離れている間、プロテインの使用頻度はほぼ0になった。置き場所を確保できないまま粉だけが残っている状態が続き、結局処分してしまった。',
+    '',
+    'もったいなかったとは思うが、当時は再開する見込みも立っていなかったので、**場所だけ取っている状態を続けるよりはと判断した。**',
+    '',
+    '## 今はニトリの洗えるレバーキャニスターを使っている',
+    '',
+    '筋トレを再開してからは、[洗えるレバーキャニスター（L・4,500mL）](https://www.nitori-net.jp/ec/product/8931117/)というニトリの容器に落ち着いている。透明の樹脂ケースで、いちばん大きいサイズを選んだ。',
+    '',
+    '良かった点は3つある。',
+    '',
+    '**透明なので残量が一目でわかる。** 袋のままだと減り具合が掴みにくいが、これなら補充のタイミングを逃さない。',
+    '',
+    '**しっかり密閉される。** レバー式の蓋で、湿気や匂い移りが気にならない。',
+    '',
+    '**洗いやすい。** 口が大きく開くので、袋からの移し替えも内部を洗うのも手間がかからない。',
+    '',
+    '## 3kgの袋はそのまま入りきらない',
+    '',
+    '注意点もある。**このキャニスターに3kgの袋はそのままでは入らない。**',
+    '',
+    '{{item:exp-whey-milkchoco-3000}}',
+    '',
+    'まとめ買いをする場合は、容器のサイズに合わせて購入量を調整するか、複数の容器に分けるなどの工夫が必要になる。',
+    '',
+    '## 見た目や置き場所を気にする人には向いている',
+    '',
+    'パッケージのまま棚に置くのが気にならない人は、袋のままでも困らないと思う。',
+    '',
+    'ただ、キッチンに置くものの見た目を揃えたい人や、保管場所をきちんと決めておきたい人には、このキャニスターはおすすめできる。',
+    '',
+    '## まとめ',
+    '',
+    '- 転職でジムを1年9か月ほど休会していた間、保管場所がなくプロテインを処分したことがある',
+    '- 再開後はニトリの洗えるレバーキャニスター（L・4,500mL）を使っている',
+    '- 透明で残量がわかりやすく、密閉性・洗いやすさも良い',
+    '- 3kgの袋はそのままでは入らないので、購入量や容器の使い方を調整する必要がある'
+  ].join('\n');
+
+  sheet.appendRow([
+    'hokan-basho',
+    'プロテインを一度手放したのは、保管場所を決めていなかったせいだった',
+    '転職でジムを1年9か月ほど離れていた間、保管場所がなくプロテインを処分した。今はニトリの洗えるキャニスターで解決している記録。',
+    new Date(),
+    new Date(),
+    '公開',
+    body
+  ]);
+
+  Logger.log('記事を追加しました: hokan-basho。次に buildAllPages() を実行してください。');
+  return '記事を追加しました。次に buildAllPages() を実行してください。';
+}
