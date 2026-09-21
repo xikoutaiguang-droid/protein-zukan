@@ -4422,3 +4422,21 @@ function dumpArticleList() {
   Logger.log(out);
   return out;
 }
+
+
+/**
+ * 指定した記事の本文（Markdown原文）をそのままログに出す。
+ * 既存記事を部分修正する前に、正確な文字列を確認するため。
+ */
+function dumpArticleBody() {
+  const targetSlug = 'tsuzukanakatta';
+  const articles = readArticles_();
+  const article = articles.filter(function (a) { return a.slug === targetSlug; })[0];
+
+  if (!article) {
+    return '見つかりません: ' + targetSlug;
+  }
+
+  Logger.log(article.body);
+  return article.body;
+}
