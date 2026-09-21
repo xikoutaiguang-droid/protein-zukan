@@ -593,15 +593,40 @@ function buildArticleHtml_(article, bodyHtml) {
  * 「なぜ20gで比べるか」はどちらにも関係するので共通で出す。
  */
 const RELATED_ARTICLE_HREFS = {
-  common: ['/naze-20g/'],
-  powder: ['/protein-youryou/', '/nomu-pace/'],
+  // どの商品ページでも関係がある「買い方」の話。
+  common: ['/naze-20g/', '/doko-de-kau/', '/sale-wo-matanai/', '/tsuzukanakatta/'],
+  // 大容量（1.5kg以上）は「飲み切れるか」、それ以外は「味・道具」で悩みどころが違う。
+  powderLarge: ['/protein-youryou/', '/nomu-pace/'],
+  powderSmall: ['/aji-shippai/', '/shaker-dougu/'],
+  // WPC/WPIはお腹の記事が刺さりやすい。
+  wpcWpi: ['/wpi-ya-mizu-no-ryou/'],
   rtd: ['/shokuba-protein/', '/shucchou-protein/']
 };
 
-function relatedArticles_(isRtd, articlesByHref) {
+/**
+ * 12本ある記事のうち5本だけが商品ページから常にリンクされ、
+ * 残り7本はどこからもリンクされていなかったのを見直した。
+ * 容量・製法で出し分けることで、商品ごとに合った記事を案内しつつ、
+ * 内部リンクをより多くの記事に分散させる（about-zukanはサイト概要の
+ * 案内であり読み物として案内する性質のものではないため対象外）。
+ */
+function relatedArticles_(product, articlesByHref) {
   if (!articlesByHref) return [];
 
-  const hrefs = RELATED_ARTICLE_HREFS.common.concat(isRtd ? RELATED_ARTICLE_HREFS.rtd : RELATED_ARTICLE_HREFS.powder);
+  const isRtd = product.form === 'RTD';
+  const hrefs = RELATED_ARTICLE_HREFS.common.slice();
+
+  if (isRtd) {
+    hrefs.push.apply(hrefs, RELATED_ARTICLE_HREFS.rtd);
+  } else {
+    const isLarge = product.capacity && product.capacity >= 1500;
+    hrefs.push.apply(hrefs, isLarge ? RELATED_ARTICLE_HREFS.powderLarge : RELATED_ARTICLE_HREFS.powderSmall);
+
+    const method = String(product.method || '').toLowerCase();
+    if (method === 'wpc' || method === 'wpi') {
+      hrefs.push.apply(hrefs, RELATED_ARTICLE_HREFS.wpcWpi);
+    }
+  }
 
   return hrefs.map(function (href) { return articlesByHref[href]; }).filter(Boolean);
 }
@@ -685,7 +710,7 @@ function buildItemHtml_(product, price, history, ctx, articlesByHref) {
     note: product.aspProgram ? product.aspProgram + '経由の公式ストアです。' : ''
   }) : '';
 
-  const related = relatedArticles_(isRtd, articlesByHref);
+  const related = relatedArticles_(product, articlesByHref);
 
   // 同じ形態で安いもの。
   //
@@ -823,6 +848,25 @@ function buildItemHtml_(product, price, history, ctx, articlesByHref) {
     shops,
     '</section>',
 
+    // あわせて読みたい記事。
+    // 検索結果ではこのページ自体はクリックされにくい（楽天・Amazon本体が
+    // 上に出るため）ことが分かっているので、価格情報のすぐ後という
+    // 早い位置に置き、ページの一番下まで読まれなくても案内できるようにする。
+    related.length ? [
+      '<section class="reads">',
+      '<div class="sh"><h2>あわせて読みたい</h2></div>',
+      related.map(function (a) {
+        return '<a class="read" href="' + esc_(a.href) + '">' +
+          '<div class="rtx">' +
+          '<div class="rt2">' + esc_(a.title) + '</div>' +
+          (a.description ? '<div class="rd">' + esc_(a.description) + '</div>' : '') +
+          '</div>' +
+          '<span class="rgo">読む</span>' +
+          '</a>';
+      }).join('\n'),
+      '</section>'
+    ].join('\n') : '',
+
     officialCard,
 
     // 同じシリーズの他の味。
@@ -860,24 +904,6 @@ function buildItemHtml_(product, price, history, ctx, articlesByHref) {
       '<section>',
       '<div class="sh"><h2>これより安いもの</h2><span>タンパク質20gあたりで比較</span></div>',
       cheaperRows,
-      '</section>'
-    ].join('\n') : '',
-
-    // あわせて読みたい記事。
-    // この商品を見ている人が次に迷いそうなこと（容量選び・持ち運びなど）を、
-    // 実際に使った記録として案内する。
-    related.length ? [
-      '<section class="reads">',
-      '<div class="sh"><h2>あわせて読みたい</h2></div>',
-      related.map(function (a) {
-        return '<a class="read" href="' + esc_(a.href) + '">' +
-          '<div class="rtx">' +
-          '<div class="rt2">' + esc_(a.title) + '</div>' +
-          (a.description ? '<div class="rd">' + esc_(a.description) + '</div>' : '') +
-          '</div>' +
-          '<span class="rgo">読む</span>' +
-          '</a>';
-      }).join('\n'),
       '</section>'
     ].join('\n') : '',
 
