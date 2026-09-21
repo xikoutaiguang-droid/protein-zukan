@@ -4540,3 +4540,50 @@ function testAwayFindings() {
   Logger.log(out);
   return out;
 }
+
+
+/**
+ * belegend-banana-1000 の再テスト。前回はキーワードの表記(「バナナオレ」)が
+ * 実際の商品名「バナナ・オレ」と違っていたため、「・」を入れて再確認する。
+ */
+function retestBelegendBanana() {
+  const credentials = getCredentials_();
+
+  const product = {
+    productId: 'belegend-banana-1000',
+    brand: 'ビーレジェンド',
+    series: '',
+    flavor: 'ハンパないバナナ・オレ',
+    method: 'wpc',
+    form: 'パウダー',
+    capacity: 700,
+    servingSize: 30,
+    proteinPerServing: 20.4,
+    keyword: 'ビーレジェンド ホエイプロテイン ハンパないバナナ・オレ 700g',
+    status: '公開',
+    totalProtein: (700 / 30) * 20.4
+  };
+
+  const items = searchRakuten_(credentials, product.keyword, CONFIG.FETCH_HITS, {
+    pages: CONFIG.FETCH_PAGES,
+    ngKeyword: buildNgKeyword_(product.form)
+  });
+
+  const lines = [];
+
+  if (items.length === 0) {
+    lines.push('ヒット0件');
+  } else {
+    items.forEach(function (item, index) {
+      const evaluated = evaluateItem_(product, item);
+      lines.push(
+        (index + 1) + '位 | ' + item.itemPrice + '円 | ' + (evaluated.rejectReason || '★採用可') +
+        '\n      ' + item.cleanName + ' / ' + item.shopName
+      );
+    });
+  }
+
+  const out = lines.join('\n');
+  Logger.log(out);
+  return out;
+}
