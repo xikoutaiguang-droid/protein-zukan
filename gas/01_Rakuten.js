@@ -1061,7 +1061,13 @@ function runPriceFetch() {
 }
 
 /**
- * 毎日の自動実行を設定する（毎朝6時台）。
+ * 毎日の自動実行を設定する（価格取得は毎朝6時台、サイト反映は7時台）。
+ * runPriceFetch はマスタの価格ログシートに記録するだけで、サイトの
+ * 静的ページ（buildAllPages）は再生成しない。そのため今まで
+ * buildAllPages を手動で実行しない限りサイトが更新されていなかった
+ * （2026-09-22 にサイトが前日23時台のまま止まっていたことで発覚）。
+ * 実行時間の予算を分けるため、あえて同じ関数の最後から呼ぶのではなく
+ * 別トリガーとして1時間後にずらしている。
  * 既存の同名トリガーは削除してから作り直す。
  */
 function createDailyTrigger() {
@@ -1073,8 +1079,14 @@ function createDailyTrigger() {
     .everyDays(1)
     .create();
 
-  Logger.log('毎日6時台の自動実行を設定しました。');
-  return '毎日6時台の自動実行を設定しました。';
+  ScriptApp.newTrigger('buildAllPages')
+    .timeBased()
+    .atHour(7)
+    .everyDays(1)
+    .create();
+
+  Logger.log('毎日6時台（価格取得）・7時台（サイト反映）の自動実行を設定しました。');
+  return '毎日6時台（価格取得）・7時台（サイト反映）の自動実行を設定しました。';
 }
 
 /**
@@ -1085,7 +1097,8 @@ function deleteDailyTrigger() {
   let count = 0;
 
   triggers.forEach(function (trigger) {
-    if (trigger.getHandlerFunction() === 'runPriceFetch') {
+    const fn = trigger.getHandlerFunction();
+    if (fn === 'runPriceFetch' || fn === 'buildAllPages') {
       ScriptApp.deleteTrigger(trigger);
       count++;
     }
