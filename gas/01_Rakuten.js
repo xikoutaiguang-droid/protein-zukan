@@ -1061,14 +1061,17 @@ function runPriceFetch() {
 }
 
 /**
- * 毎日の自動実行を設定する（価格取得は毎朝6時台、サイト反映は7時台）。
- * runPriceFetch はマスタの価格ログシートに記録するだけで、サイトの
- * 静的ページ（buildAllPages）は再生成しない。そのため今まで
- * buildAllPages を手動で実行しない限りサイトが更新されていなかった
- * （2026-09-22 にサイトが前日23時台のまま止まっていたことで発覚）。
- * 実行時間の予算を分けるため、あえて同じ関数の最後から呼ぶのではなく
- * 別トリガーとして1時間後にずらしている。
- * 既存の同名トリガーは削除してから作り直す。
+ * 【2026-09-23 訂正】毎日の自動実行は、この関数ではなく
+ * jobFetchAndBuild（"04 build.js"）を指すトリガーが毎朝5:12に
+ * GASのトリガー画面（コードではなく手動）で既に設定されている。
+ * runPriceFetch と buildAllPages を続けて呼ぶので、これ1本で足りる。
+ *
+ * この createDailyTrigger は、jobFetchAndBuild の存在に気づかず
+ * 2026-09-22 に誤って作った重複トリガー（runPriceFetch@6時,
+ * buildAllPages@7時）を作るためのものだった。既に削除済みなので
+ * 今後は使わないこと。もう一度必要になった場合に備えて残してあるが、
+ * 実行するとまた重複トリガーが増えるので、GASのトリガー画面で
+ * jobFetchAndBuild が動いているか確認してから使うこと。
  */
 function createDailyTrigger() {
   deleteDailyTrigger();
@@ -1090,7 +1093,9 @@ function createDailyTrigger() {
 }
 
 /**
- * 自動実行を解除する。
+ * createDailyTrigger で誤って作った runPriceFetch / buildAllPages の
+ * 個別トリガーを消す。jobFetchAndBuild のトリガー（GASのトリガー画面で
+ * 手動設定、毎朝5:12）はハンドラ名が違うので消えない。
  */
 function deleteDailyTrigger() {
   const triggers = ScriptApp.getProjectTriggers();
@@ -4750,4 +4755,174 @@ function publishThreeAwayFindings() {
   const message = lines.join('\n') + '\n\n' + fetchResult + '\n\nサイトへの反映も完了しました。';
   Logger.log(message);
   return message;
+}
+
+
+/**
+ * 2026-09-22 の runPriceFetch() で「検索0件」になった4件を再テストする。
+ * grong-whey-basic-1000 / myp-impact-choco-1000 は前日追加したばかりで、
+ * 追加時には普通に検索できていた。ult-whey-milktea-810 / valx-whey-choco-1000
+ * も含めて4件同時に0件になったのは、個々の商品が同時に廃盤になったというより
+ * 楽天API側の一時的な問題（レート制限・瞬断）を疑う方が自然。
+ * マスタの既存キーワードをそのまま使い、書き込みは一切しない。
+ */
+function retestZeroHitProducts() {
+  const targetIds = [
+    'grong-whey-basic-1000',
+    'myp-impact-choco-1000',
+    'ult-whey-milktea-810',
+    'valx-whey-choco-1000'
+  ];
+
+  const credentials = getCredentials_();
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+
+  function col(name) { return header.indexOf(name); }
+
+  const lines = [];
+
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    const productId = String(row[col('商品ID')]).trim();
+    if (targetIds.indexOf(productId) === -1) continue;
+
+    const keyword = String(row[col('検索キーワード')]).trim();
+    const form = String(row[col('形態')]).trim();
+
+    if (!keyword) {
+      lines.push(productId + ': 検索キーワード未入力');
+      continue;
+    }
+
+    let items;
+    try {
+      items = searchRakuten_(credentials, keyword, CONFIG.FETCH_HITS, {
+        pages: CONFIG.FETCH_PAGES,
+        ngKeyword: buildNgKeyword_(form)
+      });
+    } catch (e) {
+      lines.push(productId + ' [' + keyword + ']: エラー ' + e.message);
+      Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+      continue;
+    }
+
+    lines.push(productId + ' [' + keyword + ']: ' + items.length + '件ヒット');
+    Utilities.sleep(CONFIG.REQUEST_INTERVAL_MS);
+  }
+
+  const out = lines.join('\n');
+  Logger.log(out);
+  return out;
+}
+
+
+/**
+ * grong-whey-basic-1000 が API では0件になる件の生データ確認用。
+ * NGKeyword無し/有りの両方で、HTTPステータスと生レスポンス（先頭部分）を
+ * そのままログに出す。楽天のWeb検索では150件ヒットしているのに、
+ * APIだけ0件になる原因を切り分けるため。
+ */
+function debugZeroHitRawResponse() {
+  const credentials = getCredentials_();
+  const keyword = 'グロング ホエイプロテイン ベーシック チョコレート 1kg';
+
+  function raw(ngKeyword) {
+    const url = CONFIG.API_ENDPOINT +
+      '?applicationId=' + encodeURIComponent(credentials.appId) +
+      '&accessKey=' + encodeURIComponent(credentials.accessKey) +
+      (credentials.affiliateId ? '&affiliateId=' + encodeURIComponent(credentials.affiliateId) : '') +
+      '&keyword=' + encodeURIComponent(keyword) +
+      (ngKeyword ? '&NGKeyword=' + encodeURIComponent(ngKeyword) : '') +
+      '&hits=' + CONFIG.FETCH_HITS +
+      '&page=1' +
+      '&sort=' + encodeURIComponent('+itemPrice') +
+      '&format=json' +
+      '&formatVersion=2';
+
+    const response = UrlFetchApp.fetch(url, {
+      method: 'get',
+      headers: {
+        'Origin': CONFIG.ORIGIN,
+        'Referer': CONFIG.ORIGIN + '/'
+      },
+      muteHttpExceptions: true
+    });
+
+    return 'URL: ' + url +
+      '\nHTTPステータス: ' + response.getResponseCode() +
+      '\nレスポンス冒頭600字: ' + response.getContentText().slice(0, 600);
+  }
+
+  const withNg = buildNgKeyword_('パウダー');
+
+  const out =
+    '=== NGKeywordなし ===\n' + raw('') +
+    '\n\n=== NGKeywordあり（' + withNg + '）===\n' + raw(withNg);
+
+  Logger.log(out);
+  return out;
+}
+
+
+/**
+ * 「価格ログには今日の行が追加されているのに、サイトの更新日時が
+ * 前日のまま」という不具合の切り分け用。価格ログシートの末尾10行の
+ * 取得日時が本当にDate型として読めているかを確認する。
+ * 書き込みは一切しない。
+ */
+function debugPriceLogLatestRows() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.PRICE_LOG_SHEET_NAME);
+  const lastRow = sheet.getLastRow();
+  const header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const idCol = header.indexOf('商品ID');
+  const atCol = header.indexOf('取得日時');
+
+  const start = Math.max(2, lastRow - 9);
+  const values = sheet.getRange(start, 1, lastRow - start + 1, sheet.getLastColumn()).getValues();
+
+  const lines = values.map(function (row, i) {
+    const at = row[atCol];
+    return '行' + (start + i) + ': ' + row[idCol] +
+      ' / 取得日時=' + at +
+      ' / typeof=' + (typeof at) +
+      ' / instanceof Date=' + (at instanceof Date);
+  });
+
+  const out = '最終行: ' + lastRow + '\n' + lines.join('\n');
+  Logger.log(out);
+  return out;
+}
+
+
+/**
+ * サイトの「◯月◯日 更新」ラベルが古いまま止まっている件の切り分け用。
+ * buildAllPages() と全く同じ材料（readMasterFull_ / readPriceHistory_ /
+ * buildEntries_ / buildUpdatedLabel_）を使って、今この瞬間に計算したら
+ * 何が出るかを見る。書き込みは一切しない。
+ */
+function debugUpdatedLabel() {
+  const products = readMasterFull_();
+  const published = products.filter(function (p) { return p.status === '公開'; });
+  const history = readPriceHistory_();
+  const entries = buildEntries_(published, history);
+
+  const label = buildUpdatedLabel_(entries);
+
+  // entries の中で at が一番新しい上位5件も見せる
+  const sorted = entries
+    .filter(function (e) { return e.price && e.price.at instanceof Date; })
+    .sort(function (a, b) { return b.price.at.getTime() - a.price.at.getTime(); })
+    .slice(0, 5)
+    .map(function (e) {
+      return e.product.productId + ': ' + e.price.at;
+    });
+
+  const out = '今計算したら: ' + label +
+    '\n公開商品数: ' + published.length + ' / entries数: ' + entries.length +
+    '\n最新5件:\n' + sorted.join('\n');
+
+  Logger.log(out);
+  return out;
 }
