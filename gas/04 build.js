@@ -101,15 +101,23 @@ function buildAllPages() {
   entries.forEach(function (e) { entriesById[e.product.productId] = e; });
 
   const articleData = loadArticles_(entriesById);
-  articleData.pages.forEach(function (page) { pages.push(page); });
   const articles = articleData.articles;
   const articlesByHref = articleData.byHref;
 
-  // 個別ページ。
-  // 前回のビルド時点の順位（rankRecord）と比べて、↑↓→を出す。
-  // entry に rank / rankChange を持たせておくと、後段のトップページ・
-  // ブランド別・製法別の一覧でも同じ矢印をそのまま使い回せる。
+  // 順位（↑↓→）は、トップページ・ブランド別・製法別・商品ページの
+  // どこでも同じ矢印を使い回すので、HTMLを組み立てる前に全商品ぶん
+  // まとめて計算しておく（商品ページ本体のHTML生成より前に済ませる）。
+  //
+  // 【2026-09-24】以前はこの計算とitemsページのHTML生成・pages配列への
+  // 追加を1つのループでやっていたため、pages配列の並び順が
+  // 記事→商品ページ(50件超)→トップページ／ブランド／製法という順になり、
+  // 商品数が増えて1日の変更ページ数がMAX_UPLOADS_PER_RUN(60件)を超えると、
+  // トップページに辿り着く前にアップロードが打ち切られていた
+  // （実行自体は「完了」と表示されるので気づきにくい）。
+  // トップページ等のサイズが小さく重要なページを先にpushすることで、
+  // 上限に達してもトップページだけは確実に更新されるようにする。
   const rankRecord = loadRankRecord_();
+  const itemContexts = {};
 
   entries.forEach(function (entry) {
     const ctx = buildItemContext_(entry, entries, updatedLabel, rankRecord);
@@ -117,21 +125,10 @@ function buildAllPages() {
     entry.rankChange = ctx.rankChange;
     entry.rankPer20g = ctx.rankPer20g;
     entry.rankPer20gChange = ctx.rankPer20gChange;
-
-    const html = buildItemHtml_(entry.product, entry.price, entry.history, ctx, articlesByHref);
-    pages.push({ path: 'items/' + entry.product.productId + '/index.html', html: html });
+    itemContexts[entry.product.productId] = ctx;
   });
 
   saveRankRecord_(entries);
-
-  // 読みもの一覧。
-  // トップには最新数本しか出さないので、過去の記事の受け皿を用意する。
-  if (articles.length > 0) {
-    pages.push({
-      path: 'articles/index.html',
-      html: buildArticlesIndexHtml_(articles, { updatedLabel: updatedLabel })
-    });
-  }
 
   // 絞り込みページ（ブランド別・製法別）。
   // マスタと価格ログから自動で作られるので、書き足す原稿はない。
@@ -143,20 +140,6 @@ function buildAllPages() {
   const methodGroups = groupEntries_(entries, function (e) {
     const slug = methodSlug_(e.product.method);
     return slug ? { key: slug, name: e.product.method, slug: slug } : null;
-  });
-
-  brandGroups.forEach(function (g) {
-    pages.push({
-      path: 'brands/' + g.slug + '/index.html',
-      html: buildBrandHtml_(g, g.entries, { updatedLabel: updatedLabel })
-    });
-  });
-
-  methodGroups.forEach(function (g) {
-    pages.push({
-      path: 'methods/' + g.slug + '/index.html',
-      html: buildMethodHtml_(g, g.entries, { updatedLabel: updatedLabel })
-    });
   });
 
   // トップページ
@@ -185,6 +168,29 @@ function buildAllPages() {
     })
   });
 
+  // 読みもの一覧。
+  // トップには最新数本しか出さないので、過去の記事の受け皿を用意する。
+  if (articles.length > 0) {
+    pages.push({
+      path: 'articles/index.html',
+      html: buildArticlesIndexHtml_(articles, { updatedLabel: updatedLabel })
+    });
+  }
+
+  brandGroups.forEach(function (g) {
+    pages.push({
+      path: 'brands/' + g.slug + '/index.html',
+      html: buildBrandHtml_(g, g.entries, { updatedLabel: updatedLabel })
+    });
+  });
+
+  methodGroups.forEach(function (g) {
+    pages.push({
+      path: 'methods/' + g.slug + '/index.html',
+      html: buildMethodHtml_(g, g.entries, { updatedLabel: updatedLabel })
+    });
+  });
+
   // 固定ページ。
   // 運営者情報とプライバシーポリシーは、ASPの審査でも見られる。
   pages.push({
@@ -204,6 +210,17 @@ function buildAllPages() {
     type: 'application/xml'
   });
   pages.push({ path: 'robots.txt', html: buildRobots_(), type: 'text/plain' });
+
+  // 記事ページ本体（枚数が多くないので、商品ページより先に置く）。
+  articleData.pages.forEach(function (page) { pages.push(page); });
+
+  // 個別の商品ページ（枚数が最も多く、価格が毎日変わるので大半がここで
+  // アップロード対象になる。上限に達って一番後回しになって構わない）。
+  entries.forEach(function (entry) {
+    const ctx = itemContexts[entry.product.productId];
+    const html = buildItemHtml_(entry.product, entry.price, entry.history, ctx, articlesByHref);
+    pages.push({ path: 'items/' + entry.product.productId + '/index.html', html: html });
+  });
 
   // 変わったものだけ書き込む
   let uploaded = 0;

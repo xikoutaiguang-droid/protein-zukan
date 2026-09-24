@@ -1061,17 +1061,13 @@ function runPriceFetch() {
 }
 
 /**
- * 【2026-09-23 訂正】毎日の自動実行は、この関数ではなく
+ * 【2026-09-23 訂正】毎日の自動実行の本体は、この関数ではなく
  * jobFetchAndBuild（"04 build.js"）を指すトリガーが毎朝5:12に
  * GASのトリガー画面（コードではなく手動）で既に設定されている。
  * runPriceFetch と buildAllPages を続けて呼ぶので、これ1本で足りる。
- *
- * この createDailyTrigger は、jobFetchAndBuild の存在に気づかず
- * 2026-09-22 に誤って作った重複トリガー（runPriceFetch@6時,
- * buildAllPages@7時）を作るためのものだった。既に削除済みなので
- * 今後は使わないこと。もう一度必要になった場合に備えて残してあるが、
- * 実行するとまた重複トリガーが増えるので、GASのトリガー画面で
- * jobFetchAndBuild が動いているか確認してから使うこと。
+ * このcreateDailyTrigger/deleteDailyTriggerは、その存在に気づかず
+ * 2026-09-22に誤って作った重複トリガーを消すためだけに使い、
+ * 役目は終わっている（もう実行しない）。
  */
 function createDailyTrigger() {
   deleteDailyTrigger();
@@ -1111,6 +1107,75 @@ function deleteDailyTrigger() {
 
   Logger.log('自動実行を ' + count + '件 解除しました。');
   return '自動実行を ' + count + '件 解除しました。';
+}
+
+/**
+ * 【2026-09-24 追加】buildAllPagesの追いトリガーを設定する。
+ *
+ * 根本原因: buildAllPages は1回の実行で最大60ページしかアップロードしない
+ * （BUILD.MAX_UPLOADS_PER_RUN、GASの実行時間制限に収めるための上限）。
+ * 商品数が56件まで増え、価格が毎日ほぼ全商品ぶん変わるため、
+ * 記事(13)+商品ページ(56)+トップ/ブランド/製法等(十数件)の合計が
+ * 60件を超える日が普通に発生するようになった。
+ * jobFetchAndBuild（毎朝5:12、runPriceFetch→buildAllPagesの順で実行）は
+ * 「完了」と表示されるが、実際には上限に達して一部のページ
+ * （最悪の場合トップページ自体）が古いまま止まっていた。
+ *
+ * 対策は2段構え。
+ *   1. pages配列の並び順を直し、トップページ・ブランド別・製法別など
+ *      軽くて重要なページを商品個別ページより先にアップロードするように
+ *      した（"04 build.js" buildAllPages）。これでトップページは
+ *      上限に達しても必ず更新される。
+ *   2. それでも商品ページ側が上限で止まった日のために、buildAllPages
+ *      だけを追加で5:35・5:50に走らせ、続きから拾わせる（ビルド記録の
+ *      ハッシュ比較で、前回アップロード済みのページは自動でスキップされる
+ *      ので、2回・3回叩いても無駄な二重アップロードにはならない）。
+ *      1回のjobFetchAndBuild実行内でループ再試行しない理由は、
+ *      runPriceFetch自体が3〜5分かかり、GASの1回の実行時間制限
+ *      （6分）に収まらなくなるリスクがあるため。別トリガーとして
+ *      時間をずらすほうが安全。
+ */
+function createBuildFollowUpTriggers() {
+  deleteBuildFollowUpTriggers();
+
+  ScriptApp.newTrigger('buildAllPages')
+    .timeBased()
+    .atHour(5)
+    .nearMinute(35)
+    .everyDays(1)
+    .create();
+
+  ScriptApp.newTrigger('buildAllPages')
+    .timeBased()
+    .atHour(5)
+    .nearMinute(50)
+    .everyDays(1)
+    .create();
+
+  Logger.log('buildAllPagesの追いトリガー（5:35台・5:50台）を設定しました。');
+  return 'buildAllPagesの追いトリガー（5:35台・5:50台）を設定しました。';
+}
+
+/**
+ * createBuildFollowUpTriggers で作った2つの追いトリガーだけを消す。
+ * jobFetchAndBuild（毎朝5:12、GASのトリガー画面で手動設定）は消えない。
+ * 注意: 手動で他にbuildAllPagesのトリガーを足している場合、
+ * ハンドラ名だけでは区別できずそれも一緒に消えるので、
+ * トリガー画面で本数を確認してから使うこと。
+ */
+function deleteBuildFollowUpTriggers() {
+  const triggers = ScriptApp.getProjectTriggers();
+  let count = 0;
+
+  triggers.forEach(function (trigger) {
+    if (trigger.getHandlerFunction() === 'buildAllPages' && trigger.getTriggerSource() === ScriptApp.TriggerSource.CLOCK) {
+      ScriptApp.deleteTrigger(trigger);
+      count++;
+    }
+  });
+
+  Logger.log('buildAllPagesの時間主導型トリガーを ' + count + '件 解除しました。');
+  return 'buildAllPagesの時間主導型トリガーを ' + count + '件 解除しました。';
 }
 
 // ============================================================
@@ -4922,6 +4987,61 @@ function debugUpdatedLabel() {
   const out = '今計算したら: ' + label +
     '\n公開商品数: ' + published.length + ' / entries数: ' + entries.length +
     '\n最新5件:\n' + sorted.join('\n');
+
+  Logger.log(out);
+  return out;
+}
+
+
+/**
+ * 「サイトが今日も更新されていない」の切り分け用。
+ * 価格ログの中で、今日（Asia/Tokyo基準）の取得日時を持つ行が
+ * 何件あるかを商品IDごとに数える。0件なら今朝の自動実行
+ * （jobFetchAndBuild内のrunPriceFetch）がまるごと失敗している疑い。
+ * 書き込みは一切しない。
+ */
+function debugTodayFetchCoverage() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.PRICE_LOG_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+  const idCol = header.indexOf('商品ID');
+  const atCol = header.indexOf('取得日時');
+
+  const todayStr = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
+
+  const todayIds = {};
+  let todayCount = 0;
+  let latestAt = null;
+
+  for (let i = 1; i < values.length; i++) {
+    const at = values[i][atCol];
+    if (!(at instanceof Date)) continue;
+
+    if (!latestAt || at > latestAt) latestAt = at;
+
+    const dStr = Utilities.formatDate(at, 'Asia/Tokyo', 'yyyy-MM-dd');
+    if (dStr === todayStr) {
+      todayIds[String(values[i][idCol]).trim()] = true;
+      todayCount++;
+    }
+  }
+
+  const masterSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.MASTER_SHEET_NAME);
+  const masterValues = masterSheet.getDataRange().getValues();
+  const masterHeader = masterValues[0];
+  const mIdCol = masterHeader.indexOf('商品ID');
+  const mStatusCol = masterHeader.indexOf('ステータス');
+
+  const missing = [];
+  for (let i = 1; i < masterValues.length; i++) {
+    if (String(masterValues[i][mStatusCol]).trim() !== '公開') continue;
+    const id = String(masterValues[i][mIdCol]).trim();
+    if (!todayIds[id]) missing.push(id);
+  }
+
+  const out = '今日（' + todayStr + '）の取得件数: ' + todayCount + '行\n' +
+    'シート全体の最新取得日時: ' + latestAt +
+    '\n\n公開商品のうち今日のデータが無いもの（' + missing.length + '件）:\n' + missing.join('\n');
 
   Logger.log(out);
   return out;
