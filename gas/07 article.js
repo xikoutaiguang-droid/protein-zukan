@@ -760,3 +760,228 @@ function addArticle_hokanBasho() {
   Logger.log('記事を追加しました: hokan-basho。次に buildAllPages() を実行してください。');
   return '記事を追加しました。次に buildAllPages() を実行してください。';
 }
+
+
+/**
+ * doko-de-kau 記事に、スーパースポーツゼビオでDNSを買った実体験を
+ * 具体的に書き足す。もともと「スポーツ用品の量販店」とだけ書いていた
+ * 部分を実名にし、アクセストレード経由のPRリンクを追加する。
+ * HMBプレミアムマッスルボディアは未使用のため、こちらは組み込まない
+ * （実際に使っていない商品には貼らない、という記事の方針に従う）。
+ */
+function addZebioMentionToDokoDeKau() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ARTICLE.SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+
+  function col(name) {
+    const index = header.indexOf(name);
+    if (index === -1) throw new Error('列が見つかりません: ' + name);
+    return index;
+  }
+
+  let targetRow = -1;
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][col('記事ID')]).trim() === 'doko-de-kau') {
+      targetRow = i + 1;
+      break;
+    }
+  }
+
+  if (targetRow === -1) {
+    throw new Error('doko-de-kau が見つかりませんでした。');
+  }
+
+  const bodyCol = col('本文');
+  let body = String(sheet.getRange(targetRow, bodyCol + 1).getValue());
+
+  const oldSentence = 'そういうときは、スポーツ用品の量販店やドンキホーテ、ドラッグストアで買ったことがある。';
+  const newSentence = 'そういうときは、スポーツ用品の量販店やドンキホーテ、ドラッグストアで買ったことがある。DNSのホエイプロテインを、スーパースポーツゼビオの店舗で買ったのがそれだ。';
+
+  if (body.indexOf(oldSentence) === -1) {
+    throw new Error('置き換え対象の文が見つかりませんでした。本文が変わっている可能性があります。');
+  }
+
+  body = body.replace(oldSentence, newSentence);
+
+  const anchor = 'その日のうちに手に入るかわりに、選べる幅は狭くなる。切らさないように買っておくのが一番だが、間に合わなかったときの選択肢としては覚えておいていい。';
+  if (body.indexOf(anchor) === -1) {
+    throw new Error('PR埋め込みの挿入位置が見つかりませんでした。');
+  }
+
+  const prEmbed = '{{pr:スーパースポーツゼビオ|https://h.accesstrade.net/sp/cc?rk=0100o9gh00zkd|プロテインだけでなく、スポーツ用品全般を扱う量販店。実際にDNSを買ったのもここ。店舗で受け取れるので、通販が間に合わないときの選択肢になる。}}';
+
+  body = body.replace(anchor, anchor + '\n\n' + prEmbed);
+
+  sheet.getRange(targetRow, bodyCol + 1).setValue(body);
+
+  const message = 'doko-de-kau を更新しました。\n・スーパースポーツゼビオでDNSを買った話を具体化\n・PRリンクを追加\n\n次の手順: buildAllPages() を実行してサイトに反映。';
+  Logger.log(message);
+  return message;
+}
+
+
+/**
+ * 新しい記事「プロテインが溶け残るのは、季節のせいではなく水道水の温度
+ * だった」を追加する。ペットのため年中エアコン稼働で室温差がほぼ無い
+ * こと、そのかわり水道水の温度が季節で変わり、冬だけ溶け残りやすい
+ * こと、対策として冷水とぬるま湯・お湯を2段階で入れていること、
+ * という実体験に基づく。
+ */
+function addArticle_tokenokori() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ARTICLE.SHEET_NAME);
+
+  if (!sheet) {
+    throw new Error('「記事」シートが見つかりません。先に setupArticleSheet() を実行してください。');
+  }
+
+  const body = [
+    'うちはペットを飼っている関係で、エアコンが年中稼働している。だから「夏は暑くて」「冬は寒くて」というような、部屋の気温がプロテインに影響することはほとんどない。',
+    '',
+    'ただ、季節で変わるものが一つだけある。**水道水の温度だ。**',
+    '',
+    '夏はぬるい水が出るし、冬は冷たい水が出る。プロテインを溶かすとき、実はここが一番効いている。',
+    '',
+    '## 冬だけ、シェイカーの振りが甘いと玉が残る',
+    '',
+    '夏や春、秋は、適当にシェイカーを振ってもだいたい溶ける。ところが冬場だけ、振り方が甘いと粉が固まって残ることがある。',
+    '',
+    '原因ははっきりしていて、**水が冷たいほどプロテインは溶けにくい。** 気温の話ではなく、コップに注ぐ水そのものの温度の話だった。',
+    '',
+    '## 冬は、水を2段階に分けて入れている',
+    '',
+    '対策として、冬場は水の入れ方を変えている。',
+    '',
+    '先に冷たい水道水を100mlくらい入れて、残りの50〜100mlをぬるま湯かお湯で足す。全部お湯にしないのは、たぶん熱すぎるとタンパク質の風味や粉の溶け方に影響しそうな気がして、なんとなく避けている（試して比較したわけではない）。',
+    '',
+    'この2段階にしてから、冬でも玉が残ることはほとんどなくなった。',
+    '',
+    '## まとめ',
+    '',
+    '- 部屋の気温よりも、水道水そのものの温度がプロテインの溶けやすさに影響している',
+    '- 冬は水が冷たいので、振りが甘いと溶け残りやすい',
+    '- 冷たい水100ml＋ぬるま湯・お湯50〜100mlの2段階にすると、冬でも溶けやすい'
+  ].join('\n');
+
+  sheet.appendRow([
+    'tokenokori',
+    'プロテインが溶け残るのは、季節のせいではなく水道水の温度だった',
+    '部屋はペットのため年中エアコンで気温差がほぼ無い。それでも冬だけプロテインが溶け残るのは、水道水の温度が原因だった。冷水とぬるま湯を2段階に分けて入れる工夫の記録。',
+    new Date(),
+    new Date(),
+    '公開',
+    body
+  ]);
+
+  Logger.log('記事を追加しました: tokenokori。次に buildAllPages() を実行してください。');
+  return '記事を追加しました。次に buildAllPages() を実行してください。';
+}
+
+
+/**
+ * 新しい記事「飲み終えたシェイカーは、空だと思って油断していた」を
+ * 追加する。飲み終えたつもりのシェイカーに底にわずかにプロテインが
+ * 残っていて、蓋の閉め方が甘く漏れてベタついた・匂いが残った実体験と、
+ * それ以来蓋をギチギチに閉める習慣がついた話。
+ */
+function addArticle_yudan() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ARTICLE.SHEET_NAME);
+
+  if (!sheet) {
+    throw new Error('「記事」シートが見つかりません。先に setupArticleSheet() を実行してください。');
+  }
+
+  const body = [
+    '飲み終えたシェイカーは、普段通り蓋を閉めたと思っていた。飲み終えたと思っていたが、実際は底にわずかにプロテインが残っていた。',
+    '',
+    '## 蓋が甘くて、少し漏れた',
+    '',
+    'その状態でシェイカーをそのまま持ち運んでいたら、蓋の閉め方が甘かったらしく、残っていた分がわずかに漏れた。内側がベタついているのに気づいたのは、持ち運んだ後だった。',
+    '',
+    '量としてはごくわずかだったが、触るとはっきり分かるくらいにはベタついていた。',
+    '',
+    '## 拭いても、匂いが残った',
+    '',
+    'すぐに拭いたが、匂いまでは取り切れなかった。プロテインの匂いは、液体をふき取ったくらいでは消えないらしい。',
+    '',
+    '結局、その日はベタつきと匂いが気になったまま過ごすことになった。',
+    '',
+    '## それ以来、蓋はギチギチに閉めている',
+    '',
+    'この件があってから、**空に近いシェイカーでも、蓋はギチギチに閉めるようになった。笑** 「もう空だから」という油断が原因だったので、残量に関係なく同じように閉める、というだけの話だが、効果はあった。あれ以来、同じことは起きていない。',
+    '',
+    '## まとめ',
+    '',
+    '- 飲み終えたシェイカーでも、底にわずかにプロテインが残っていることがある',
+    '- 蓋の閉め方が甘いと、わずかな残量でも漏れて内側がベタつく',
+    '- 拭いても匂いは残りやすい',
+    '- 残量に関係なく、蓋はしっかり閉める習慣にしてから同じことは起きていない'
+  ].join('\n');
+
+  sheet.appendRow([
+    'yudan',
+    '飲み終えたシェイカーは、空だと思って油断していた',
+    '飲み終えたつもりのシェイカーに、実は底にわずかにプロテインが残っていた。蓋の閉め方が甘く漏れてベタついた・匂いが残った話と、それ以来蓋をギチギチに閉めるようになった記録。',
+    new Date(),
+    new Date(),
+    '公開',
+    body
+  ]);
+
+  Logger.log('記事を追加しました: yudan。次に buildAllPages() を実行してください。');
+  return '記事を追加しました。次に buildAllPages() を実行してください。';
+}
+
+
+/**
+ * 記事の本文・説明文に書いてある取得時刻の表記を、実際の運用に合わせる。
+ * 自動実行は毎朝5:12ごろに動くので、「毎朝6時」「毎日6時」を
+ * 「毎朝5〜6時ごろ」「毎日5〜6時」に直す。
+ * 該当しなかった記事は触らない。変更した記事のIDと件数をログに出す。
+ */
+function fixPriceTimeInArticles() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ARTICLE.SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const header = values[0];
+
+  const idCol = header.indexOf('記事ID');
+  const targetCols = [header.indexOf('本文'), header.indexOf('説明（検索結果に出る文）')]
+    .filter(function (c) { return c !== -1; });
+
+  const replacements = [
+    ['毎朝6時に', '毎朝5〜6時ごろに'],
+    ['毎朝6時', '毎朝5〜6時ごろ'],
+    ['毎日6時', '毎日5〜6時']
+  ];
+
+  const lines = [];
+
+  for (let i = 1; i < values.length; i++) {
+    let changed = 0;
+
+    targetCols.forEach(function (col) {
+      const original = String(values[i][col] || '');
+      let updated = original;
+
+      replacements.forEach(function (pair) {
+        updated = updated.split(pair[0]).join(pair[1]);
+      });
+
+      if (updated !== original) {
+        sheet.getRange(i + 1, col + 1).setValue(updated);
+        changed++;
+      }
+    });
+
+    if (changed > 0) {
+      lines.push(String(values[i][idCol]).trim() + ': ' + changed + '箇所の欄を更新');
+    }
+  }
+
+  const message = lines.length > 0
+    ? lines.join('\n') + '\n\n次の手順: buildAllPages() を実行してサイトに反映。'
+    : '該当する表記はありませんでした。';
+
+  Logger.log(message);
+  return message;
+}

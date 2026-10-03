@@ -270,6 +270,9 @@ function jsonLd_(obj) {
  */
 const DEFAULT_OG_IMAGE = 'https://proteinzukan.com/assets/og-image.jpg';
 
+/** トップページの見出し背景。ドット絵の「20 PRO」(WebP・29KB)。SNSシェア用の画像とは別にしている。 */
+const HERO_IMAGE = 'https://proteinzukan.com/assets/hero-20pro-pixel.webp';
+
 /**
  * ページ共通のhead。
  *
@@ -340,7 +343,7 @@ const SITE_CSS = [
   // 画面幅いっぱいに見えるようにしている。
   '.hero{position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 -20px 20px;padding:20px 20px 16px;min-height:160px;' +
     'background-color:var(--stone);' +
-    "background-image:linear-gradient(90deg,rgba(13,14,16,.82),rgba(13,14,16,.35)),url('" + DEFAULT_OG_IMAGE + "');" +
+    "background-image:linear-gradient(90deg,rgba(13,14,16,.82),rgba(13,14,16,.35)),url('" + HERO_IMAGE + "');" +
     'background-size:cover;background-position:center;background-repeat:no-repeat;' +
     'border-bottom:2px solid var(--ink)}',
   '.herotxt{font-family:"Zen Kaku Gothic New";font-weight:900;font-size:15px;line-height:1;color:#fff}',
@@ -570,7 +573,7 @@ function buildArticleHtml_(article, bodyHtml) {
     bodyHtml,
     '</article>',
     '<footer>',
-    '記事中の価格は執筆時点のものです。各商品ページの価格は毎日6時に更新しています。<br>',
+    '記事中の価格は執筆時点のものです。各商品ページの価格は毎日5〜6時に更新しています。<br>',
     '成分値はメーカー公表値です。購入前にパッケージの表示をご確認ください。<br>',
     '当サイトはアフィリエイトプログラムを利用しています。',
     footerNav_(),
@@ -894,11 +897,11 @@ function buildItemHtml_(product, price, history, ctx, articlesByHref) {
     ].join('\n') : '',
 
     '<div class="chart">',
-    '<div class="ch"><b>価格の推移</b><span>毎日6時の最安値</span></div>',
+    '<div class="ch"><b>価格の推移</b><span>毎日5〜6時の最安値</span></div>',
     renderChart_(history),
     '</div>',
 
-    '<p class="auto">このページは商品マスタと価格ログから自動生成しています。価格は毎日6時に取得しています。</p>',
+    '<p class="auto">このページは商品マスタと価格ログから自動生成しています。価格は毎日5〜6時に取得しています。</p>',
 
     cheaperRows ? [
       '<section>',
@@ -908,7 +911,7 @@ function buildItemHtml_(product, price, history, ctx, articlesByHref) {
     ].join('\n') : '',
 
     '<footer>',
-    '価格は楽天市場のAPIから毎日6時に取得しています。表示時点で在庫や価格が変わっている場合があります。<br>',
+    '価格は楽天市場のAPIから毎日5〜6時に取得しています。表示時点で在庫や価格が変わっている場合があります。<br>',
     '成分値はメーカー公表値です。購入前にパッケージの表示をご確認ください。',
     footerNav_(),
     '</footer>',
@@ -1001,7 +1004,7 @@ function buildIndexHtml_(entries, ctx) {
       'プロテインをタンパク質20gあたりの価格で比べられます。価格は毎日更新しています。',
       'https://proteinzukan.com/'
     ),
-    '<div class="ticker"><span>毎日6時に楽天市場から価格を自動取得・更新しています　　毎日6時に楽天市場から価格を自動取得・更新しています</span></div>',
+    '<div class="ticker"><span>毎日5〜6時に楽天市場から価格を自動取得・更新しています　　毎日5〜6時に楽天市場から価格を自動取得・更新しています</span></div>',
     '<div class="wrap">',
     '<div class="hero">',
     '<div class="herotxt"><h1><a href="/">プロテイン図鑑</a></h1><small>毎日更新のプロテイン価格比較</small></div>',
@@ -1010,7 +1013,7 @@ function buildIndexHtml_(entries, ctx) {
 
     '<p class="lead">同じタンパク質20gを摂るのに、いくらかかるか。' +
       '容量も1食分の量も違う商品を、同じものさしで並べています。</p>',
-    '<p class="auto">価格は毎日6時に楽天市場から取得しています。</p>',
+    '<p class="auto">価格は毎日5〜6時に楽天市場から取得しています。</p>',
 
     // 読みものはトップに最新3本だけ出す。
     // 記事が増えるほど価格ランキングが下へ押し下げられ、
@@ -1049,7 +1052,7 @@ function buildIndexHtml_(entries, ctx) {
     section('ドリンク', '1本あたりの安い順', rtd, '円/本', 'rtd'),
 
     '<footer>',
-    '価格は楽天市場のAPIから毎日6時に取得しています。表示時点で在庫や価格が変わっている場合があります。<br>',
+    '価格は楽天市場のAPIから毎日5〜6時に取得しています。表示時点で在庫や価格が変わっている場合があります。<br>',
     '成分値はメーカー公表値です。購入前にパッケージの表示をご確認ください。<br>',
     '当サイトはアフィリエイトプログラムを利用しています。',
     footerNav_(),
@@ -1106,7 +1109,7 @@ function buildArticlesIndexHtml_(articles, ctx) {
     '<a class="more" href="/">価格の一覧に戻る</a>',
 
     '<footer>',
-    '記事中の価格は執筆時点のものです。各商品ページの価格は毎日6時に更新しています。<br>',
+    '記事中の価格は執筆時点のものです。各商品ページの価格は毎日5〜6時に更新しています。<br>',
     '成分値はメーカー公表値です。購入前にパッケージの表示をご確認ください。<br>',
     '当サイトはアフィリエイトプログラムを利用しています。',
     footerNav_(),
@@ -1166,7 +1169,7 @@ function buildAboutHtml_(ctx) {
     '<p>プロテインを何年か飲んでいる個人が運営しています。栄養やトレーニングの専門家ではありません。書いているのは、自分が買って飲んだ範囲のことだけです。</p>',
 
     '<h2>価格について</h2>',
-    '<p>価格は楽天市場のAPIから毎日6時に取得しています。表示時点で在庫や価格が変わっている場合があります。</p>',
+    '<p>価格は楽天市場のAPIから毎日5〜6時に取得しています。表示時点で在庫や価格が変わっている場合があります。</p>',
     '<p>楽天の価格を載せているのは毎日自動で取得できるためで、<strong>最安値を保証するものではありません。</strong>公式サイトのほうが安いこともあります。</p>',
     '<p>成分値はメーカーの公表値です。購入前にパッケージの表示をご確認ください。</p>',
 
@@ -1187,7 +1190,7 @@ function buildAboutHtml_(ctx) {
     '</article>',
 
     '<footer>',
-    '価格は楽天市場のAPIから毎日6時に取得しています。<br>',
+    '価格は楽天市場のAPIから毎日5〜6時に取得しています。<br>',
     '成分値はメーカー公表値です。購入前にパッケージの表示をご確認ください。<br>',
     '当サイトはアフィリエイトプログラムを利用しています。',
     footerNav_(),
@@ -1250,7 +1253,7 @@ function buildPrivacyHtml_(ctx) {
     '</article>',
 
     '<footer>',
-    '価格は楽天市場のAPIから毎日6時に取得しています。<br>',
+    '価格は楽天市場のAPIから毎日5〜6時に取得しています。<br>',
     '成分値はメーカー公表値です。購入前にパッケージの表示をご確認ください。<br>',
     '当サイトはアフィリエイトプログラムを利用しています。',
     footerNav_(),
@@ -1476,14 +1479,14 @@ function buildBrandHtml_(brand, entries, ctx) {
     '<h1 style="font-size:22px;font-weight:900;line-height:1.4">' + esc_(title) + '</h1>',
     '<p class="lead">' + esc_(brand.name) + 'の商品を、タンパク質20gを摂るのにいくらかかるかで並べています。' +
       '容量や1食分の量が違っても、同じものさしで比べられます。</p>',
-    '<p class="auto">価格は毎日6時に楽天市場から取得しています。</p>',
+    '<p class="auto">価格は毎日5〜6時に楽天市場から取得しています。</p>',
 
     renderFormSections_(entries),
 
     '<a class="more" href="/">すべての商品を見る</a>',
 
     '<footer>',
-    '価格は楽天市場のAPIから毎日6時に取得しています。表示時点で在庫や価格が変わっている場合があります。<br>',
+    '価格は楽天市場のAPIから毎日5〜6時に取得しています。表示時点で在庫や価格が変わっている場合があります。<br>',
     '成分値はメーカー公表値です。購入前にパッケージの表示をご確認ください。<br>',
     '当サイトはアフィリエイトプログラムを利用しています。',
     footerNav_(),
@@ -1521,14 +1524,14 @@ function buildMethodHtml_(method, entries, ctx) {
 
     '<h1 style="font-size:22px;font-weight:900;line-height:1.4">' + esc_(title) + '</h1>',
     '<p class="lead">製法が' + esc_(method.name) + 'の商品を、タンパク質20gあたりの価格で並べています。</p>',
-    '<p class="auto">価格は毎日6時に楽天市場から取得しています。</p>',
+    '<p class="auto">価格は毎日5〜6時に楽天市場から取得しています。</p>',
 
     renderFormSections_(entries),
 
     '<a class="more" href="/">すべての商品を見る</a>',
 
     '<footer>',
-    '価格は楽天市場のAPIから毎日6時に取得しています。表示時点で在庫や価格が変わっている場合があります。<br>',
+    '価格は楽天市場のAPIから毎日5〜6時に取得しています。表示時点で在庫や価格が変わっている場合があります。<br>',
     '成分値はメーカー公表値です。購入前にパッケージの表示をご確認ください。<br>',
     '当サイトはアフィリエイトプログラムを利用しています。',
     footerNav_(),
