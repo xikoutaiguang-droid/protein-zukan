@@ -5046,3 +5046,22 @@ function debugTodayFetchCoverage() {
   Logger.log(out);
   return out;
 }
+
+
+/**
+ * 「公式・楽天・コンビニで選べるものも値段も違う」系の、買う場所についての
+ * 記事本文をダンプする。ゼビオでDNSを買った実体験を追記する場所を探すため。
+ */
+function dumpBuyingPlaceArticle() {
+  const articles = readArticles_();
+  const target = articles.filter(function (a) {
+    return a.title.indexOf('公式') !== -1 || a.title.indexOf('楽天') !== -1 || a.title.indexOf('買う場所') !== -1;
+  });
+
+  const out = target.map(function (a) {
+    return '--- ' + a.slug + ' / ' + a.title + ' ---\n' + a.body;
+  }).join('\n\n');
+
+  Logger.log(out || '該当する記事が見つかりませんでした。');
+  return out;
+}

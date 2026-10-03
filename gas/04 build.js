@@ -649,6 +649,34 @@ function buildItemContext_(entry, allEntries, updatedLabel, rankRecord) {
     };
   });
 
+  // ランキング戦（VS表示）の相手。
+  // 自分より安いものがあれば、すぐ下の「いちばん近い安いもの」と戦わせる。
+  // 自分が最安なら、すぐ上の「いちばん近い高いもの」と戦わせて勝たせる。
+  // 差が大きすぎる相手より、僅差の相手のほうが勝負として意味があるため。
+  const upper = sameForm.filter(function (e) {
+    return e.product.productId !== entry.product.productId && compareValue_(e) > basis;
+  }).sort(function (a, b) {
+    return compareValue_(a) - compareValue_(b);
+  })[0];
+
+  const nextUp = upper ? {
+    productId: upper.product.productId,
+    maker: upper.product.maker,
+    brand: upper.product.brand,
+    series: upper.product.series,
+    flavor: upper.product.flavor,
+    form: upper.product.form,
+    capacity: upper.product.capacity,
+    method: upper.product.method,
+    imageUrl: upper.product.imageUrl,
+    proteinPerServing: upper.product.proteinPerServing,
+    unitValue: upper.unitValue,
+    per20g: upper.per20g,
+    compareValue: compareValue_(upper),
+    price: upper.price ? upper.price.price : '',
+    href: upper.href
+  } : null;
+
   // 同じシリーズの他の味。
   // 商品ページを見ている人は、その商品自体には興味がある状態なので、
   // 別ブランドを勧めるより先に「同じものの別の味」を見せたほうが役に立つ。
@@ -701,6 +729,7 @@ function buildItemContext_(entry, allEntries, updatedLabel, rankRecord) {
     minPer20g: values.length ? Math.min.apply(null, values) : null,
     maxPer20g: values.length ? Math.max.apply(null, values) : null,
     cheaper: cheaper,
+    nextUp: nextUp,
     updatedLabel: updatedLabel
   };
 }

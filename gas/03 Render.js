@@ -309,6 +309,7 @@ function htmlHead_(title, description, canonical, ogImage, ogType) {
     '<link rel="preconnect" href="https://fonts.googleapis.com">',
     '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
     '<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800;900&family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">',
+    '<link href="https://fonts.googleapis.com/css2?family=DotGothic16&text=' + encodeURIComponent(PIXEL_FONT_TEXT) + '&display=swap" rel="stylesheet">',
     '<style>',
     SITE_CSS,
     '</style>',
@@ -343,13 +344,13 @@ const SITE_CSS = [
   // 画面幅いっぱいに見えるようにしている。
   '.hero{position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 -20px 20px;padding:20px 20px 16px;min-height:160px;' +
     'background-color:var(--stone);' +
-    "background-image:linear-gradient(90deg,rgba(13,14,16,.82),rgba(13,14,16,.35)),url('" + HERO_IMAGE + "');" +
+    "background-image:linear-gradient(90deg,rgba(13,14,16,.50),rgba(13,14,16,.04)),url('" + HERO_IMAGE + "');" +
     'background-size:cover;background-position:center;background-repeat:no-repeat;' +
     'border-bottom:2px solid var(--ink)}',
-  '.herotxt{font-family:"Zen Kaku Gothic New";font-weight:900;font-size:15px;line-height:1;color:#fff}',
+  '.herotxt{font-family:"Zen Kaku Gothic New";font-weight:900;font-size:15px;line-height:1;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.9)}',
   '.herotxt h1{font:inherit;letter-spacing:inherit;margin:0}',
   '.herotxt small{display:block;font-family:"Noto Sans JP";font-weight:400;font-size:8.5px;letter-spacing:.04em;color:rgba(255,255,255,.75);margin-top:6px}',
-  '.hero .upd{color:rgba(255,255,255,.75);align-self:flex-end}',
+  '.hero .upd{color:rgba(255,255,255,.75);align-self:flex-end;text-shadow:0 1px 4px rgba(0,0,0,.9)}',
   '.hero .upd b{color:#fff}',
   '.upd{text-align:right;font-size:10px;color:var(--sub);line-height:1.6}',
   '.upd b{display:block;color:var(--ink);font-weight:700;font-size:11.5px;font-family:"Zen Kaku Gothic New"}',
@@ -498,7 +499,132 @@ const SITE_CSS = [
   'footer{border-top:2px solid var(--ink);margin-top:54px;padding-top:18px;font-size:10px;color:var(--sub);line-height:1.9}',
   '.fnav{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--hair)}',
   '.fnav a{font-family:"Zen Kaku Gothic New";font-weight:700;font-size:11px;color:var(--ink-2)}',
-  '.fnav a:hover{color:var(--ink)}'
+  '.fnav a:hover{color:var(--ink)}',
+
+  // ===== 図鑑風のゲームUI（ステータス窓・ランク・パラメータ・ランキング戦） =====
+  // ラベル用のドット文字は、使う文字だけを読み込む（htmlHead_ の PIXEL_FONT_TEXT）。
+  // 動きは transform と opacity だけで作り、画面外では content-visibility で描画を止める。
+  '.dg{font-family:"DotGothic16","Zen Kaku Gothic New",sans-serif}',
+  '.win{border:2px solid var(--ink);background:#fff;box-shadow:5px 5px 0 var(--ink);margin:0 5px 30px 0}',
+  '.win-bar{background:var(--ink);color:#fff;padding:6px 12px;display:flex;justify-content:space-between;align-items:center;font-family:"DotGothic16","Zen Kaku Gothic New",sans-serif;font-size:12px;letter-spacing:.12em}',
+  '.win-bar small{font-size:10.5px;letter-spacing:.06em;color:#C9CBD1}',
+  '.win-body{padding:16px}',
+  '.gh{display:flex;align-items:center;gap:10px;margin:0 5px 14px 0}',
+  '.gh span{font-family:"DotGothic16","Zen Kaku Gothic New",sans-serif;font-size:13px;letter-spacing:.12em}',
+  '.gh i{flex:1;border-top:2px solid var(--ink)}',
+  '.pst{display:grid;grid-template-columns:96px minmax(0,1fr);gap:16px;align-items:start}',
+  '.pst .pkg{width:96px;margin:0;border:2px solid var(--ink)}',
+  '.pst .pkg.photo{border:2px solid var(--ink)}',
+  '.pst h1{font-size:17px;font-weight:900;line-height:1.45;margin:0}',
+  '.tchips{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}',
+  '.tchip{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700;font-size:10.5px;border:1.5px solid var(--ink);padding:0 9px;color:var(--ink)}',
+  '.tc0{background:#DCE4FF}.tc1{background:#FFE9A8}.tc2{background:#CDEFEA}.tc3{background:#F3D5E3}',
+  '.tierrow{display:flex;align-items:stretch;gap:16px;margin-top:20px;padding-top:18px;border-top:2px dashed var(--ink)}',
+  '.tier{flex:none;width:84px;border:2px solid var(--ink);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 0}',
+  '.tier span{font-family:"DotGothic16","Zen Kaku Gothic New",sans-serif;font-size:10.5px;letter-spacing:.14em}',
+  '.tier b{font-family:"Archivo",sans-serif;font-weight:900;font-size:50px;line-height:1}',
+  '.tier-S{background:#FFC72C;color:var(--ink)}.tier-A{background:var(--acc)}.tier-B{background:#0E7C74}.tier-C{background:#5F626A}',
+  '.tierpr{flex:1;min-width:0}',
+  '.tierpr .big{display:flex;align-items:baseline;gap:4px}',
+  '.tierpr .big .n{font-size:50px;line-height:1;letter-spacing:-.04em}',
+  '.tierpr .big .u{font-size:11px;font-weight:500;color:var(--sub)}',
+  '.tierpr .rk3{font-size:11px;color:var(--ink-2);margin-top:4px}',
+  '.tierpr .rk3 b{font-family:"Archivo",sans-serif;font-weight:800}',
+  '.tierpr .rk4{font-size:10px;color:var(--sub);margin-top:2px}',
+  '.tierlg{font-size:9.5px;color:var(--sub);margin-top:10px;line-height:1.6}',
+  '.pmh{margin-top:22px;display:flex;align-items:center;gap:10px}',
+  '.pmh span{font-family:"DotGothic16","Zen Kaku Gothic New",sans-serif;font-size:12px;letter-spacing:.12em}',
+  '.pmh i{flex:1;border-top:2px solid var(--ink)}',
+  '.pm{margin-top:14px}',
+  '.pm .l{display:flex;align-items:center;gap:10px}',
+  '.pm .l em{flex:none;width:112px;font-style:normal;font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700;font-size:12px}',
+  '.pm .cells{flex:1;min-width:0;display:flex;gap:3px}',
+  '.pm .cells i{flex:1;height:14px;background:var(--stone);border:1.5px solid var(--ink)}',
+  '.pm .cells i.on{background:var(--acc)}',
+  '.pm .l b{flex:none;width:44px;text-align:right;font-family:"Archivo",sans-serif;font-weight:800;font-size:13px}',
+  '.pm .nt{font-size:10px;color:var(--sub);margin-top:4px;line-height:1.6}',
+  '.tiles{display:grid;gap:8px;margin-top:20px}',
+  '.tile{border:2px solid var(--ink);padding:8px 6px;text-align:center}',
+  '.tile span{display:block;font-family:"DotGothic16","Zen Kaku Gothic New",sans-serif;font-size:10px;letter-spacing:.1em;color:var(--sub)}',
+  '.tile b{display:block;font-family:"Archivo",sans-serif;font-weight:800;font-size:22px;line-height:1.2}',
+  '.tile b small{font-size:11px}',
+  '.g-arena{position:relative;height:158px;background:var(--stone);border-bottom:2px solid var(--ink);overflow:hidden;content-visibility:auto;contain-intrinsic-size:auto 158px}',
+  '.g-in{position:absolute;top:0;right:0;bottom:0;left:0;animation:g-shake 4.2s linear infinite;will-change:transform}',
+  '.g-cap{position:absolute;top:8px;left:12px;font-family:"DotGothic16","Zen Kaku Gothic New",sans-serif;font-size:10px;letter-spacing:.1em;color:var(--sub)}',
+  '.g-floor{position:absolute;left:0;right:0;bottom:24px;border-top:2px dashed #B9BCC4}',
+  '.g-trk{position:absolute;top:0;right:0;bottom:0;left:0;will-change:transform}',
+  '.g-hold{position:absolute;bottom:26px;width:64px}',
+  '.g-trk-l .g-hold{left:14%}',
+  '.g-trk-r .g-hold{right:14%}',
+  '.g-ic{position:relative;transform-origin:50% 100%;will-change:transform}',
+  '.g-ic .pkg{border:2px solid var(--ink);font-size:6.5px;padding:5px}',
+  '.g-ic .pkg.photo{padding:4px}',
+  '.g-tag{position:absolute;top:-24px;left:50%;margin-left:-22px;width:44px;text-align:center;font-family:"Archivo",sans-serif;font-weight:900;font-size:11px;line-height:18px;border:1.5px solid var(--ink)}',
+  '.g-tag.w{background:#FFC72C;color:var(--ink)}',
+  '.g-tag.l{background:#5F626A;color:#fff}',
+  '.g-dim{position:absolute;top:0;right:0;bottom:0;left:0;background:#5F626A;opacity:0}',
+  '.g-ring{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border:3px solid var(--ink);border-radius:50%;opacity:0;animation:g-ring 4.2s ease-out infinite}',
+  '.g-vs{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-family:"Archivo",sans-serif;font-weight:900;font-size:12px;animation:g-vsc 4.2s ease-out infinite}',
+  '.g-trk-l.g-lose{animation:g-trk-l-lose 4.2s ease-in-out infinite}',
+  '.g-trk-l.g-win{animation:g-trk-l-win 4.2s ease-in-out infinite}',
+  '.g-trk-r.g-lose{animation:g-trk-r-lose 4.2s ease-in-out infinite}',
+  '.g-trk-r.g-win{animation:g-trk-r-win 4.2s ease-in-out infinite}',
+  '.g-lose .g-ic{animation:g-ic-lose-l 4.2s ease-in-out infinite}',
+  '.g-trk-r.g-lose .g-ic{animation-name:g-ic-lose-r}',
+  '.g-win .g-ic{animation:g-ic-win-r 4.2s ease-in-out infinite}',
+  '.g-trk-l.g-win .g-ic{animation-name:g-ic-win-l}',
+  '.g-lose .g-dim{animation:g-dim 4.2s ease-out infinite}',
+  '.g-tag{animation:g-tagin 4.2s ease-out infinite}',
+  '@keyframes g-trk-l-lose{0%,18%{transform:translateX(0)}40%{transform:translateX(calc(36% - 66px))}46%{transform:translateX(calc(36% - 64px))}54%{transform:translateX(calc(36% - 124px))}62%,84%{transform:translateX(calc(36% - 112px))}96%,100%{transform:translateX(0)}}',
+  '@keyframes g-trk-l-win{0%,18%{transform:translateX(0)}40%{transform:translateX(calc(36% - 66px))}46%{transform:translateX(calc(36% - 52px))}54%{transform:translateX(calc(36% - 44px))}62%,84%{transform:translateX(calc(36% - 48px))}96%,100%{transform:translateX(0)}}',
+  '@keyframes g-trk-r-lose{0%,18%{transform:translateX(0)}40%{transform:translateX(calc(-36% + 66px))}46%{transform:translateX(calc(-36% + 64px))}54%{transform:translateX(calc(-36% + 124px))}62%,84%{transform:translateX(calc(-36% + 112px))}96%,100%{transform:translateX(0)}}',
+  '@keyframes g-trk-r-win{0%,18%{transform:translateX(0)}40%{transform:translateX(calc(-36% + 66px))}46%{transform:translateX(calc(-36% + 76px))}54%{transform:translateX(calc(-36% + 84px))}62%,84%{transform:translateX(calc(-36% + 80px))}96%,100%{transform:translateX(0)}}',
+  '@keyframes g-ic-lose-l{0%,46%{transform:rotate(0)}54%{transform:rotate(-16deg)}62%,84%{transform:rotate(-12deg)}96%,100%{transform:rotate(0)}}',
+  '@keyframes g-ic-lose-r{0%,46%{transform:rotate(0)}54%{transform:rotate(16deg)}62%,84%{transform:rotate(12deg)}96%,100%{transform:rotate(0)}}',
+  '@keyframes g-ic-win-r{0%,40%{transform:scale(1) rotate(0)}46%{transform:scale(1.1) rotate(0)}54%{transform:scale(1.14) rotate(3deg)}62%,84%{transform:scale(1.12) rotate(0)}96%,100%{transform:scale(1) rotate(0)}}',
+  '@keyframes g-ic-win-l{0%,40%{transform:scale(1) rotate(0)}46%{transform:scale(1.1) rotate(0)}54%{transform:scale(1.14) rotate(-3deg)}62%,84%{transform:scale(1.12) rotate(0)}96%,100%{transform:scale(1) rotate(0)}}',
+  '@keyframes g-dim{0%,50%{opacity:0}54%,84%{opacity:.55}96%,100%{opacity:0}}',
+  '@keyframes g-tagin{0%,50%{opacity:0;transform:translateY(6px) scale(.6)}56%,84%{opacity:1;transform:translateY(0) scale(1)}92%,100%{opacity:0;transform:translateY(0) scale(1)}}',
+  '@keyframes g-ring{0%,43%{transform:scale(0);opacity:0}44%{transform:scale(.3);opacity:1}58%{transform:scale(3.6);opacity:0}100%{transform:scale(3.6);opacity:0}}',
+  '@keyframes g-vsc{0%,40%{transform:scale(1);background:#0D0E10;color:#fff}44%{transform:scale(2.2);background:#FFC72C;color:#0D0E10}58%,100%{transform:scale(1);background:#0D0E10;color:#fff}}',
+  '@keyframes g-shake{0%,43%{transform:translate(0,0)}46%{transform:translate(-3px,1px)}50%{transform:translate(3px,-1px)}54%{transform:translate(-2px,1px)}58%,100%{transform:translate(0,0)}}',
+  '@keyframes g-blink{0%,49%{opacity:1}50%,100%{opacity:0}}',
+  '.vsn{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}',
+  '.vsn>div{padding:12px 10px 12px 12px}',
+  '.vsn>div+div{padding:12px 12px 12px 10px;text-align:right}',
+  '.vsn .tt{font-family:"DotGothic16","Zen Kaku Gothic New",sans-serif;font-size:10px;letter-spacing:.1em;color:var(--sub)}',
+  '.vsn .nm{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:900;font-size:12.5px;line-height:1.5;margin-top:4px;display:block}',
+  '.vsn .bd{font-size:10px;color:var(--sub);display:block}',
+  '.vsr{display:grid;grid-template-columns:minmax(0,1fr) 74px minmax(0,1fr);text-align:center;align-items:center;border-top:1.5px solid var(--hair)}',
+  '.vsr.f{border-top:2px solid var(--ink)}',
+  '.vsr>div{padding:10px 4px;font-family:"Archivo",sans-serif;font-weight:800;font-size:18px}',
+  '.vsr>div small{font-size:10px;font-family:"Noto Sans JP",sans-serif;font-weight:500}',
+  '.vsr>div.lb{font-family:"Noto Sans JP",sans-serif;font-weight:400;font-size:10px;color:var(--sub);line-height:1.3;padding:10px 0}',
+  '.vsr>div+div+div{border-left:2px solid var(--ink)}',
+  '.vsr>div.wn{background:#FFE9A8}',
+  '.vsr .wm{display:inline-block;margin-left:6px;background:var(--ink);color:#fff;font-family:"DotGothic16","Zen Kaku Gothic New",sans-serif;font-size:10px;font-weight:400;padding:0 5px;letter-spacing:.08em;vertical-align:middle}',
+  '.vsf{background:var(--ink);color:#fff;padding:9px 12px;font-size:11px;line-height:1.6;text-align:center}',
+  '.vsf b{font-family:"Archivo",sans-serif;font-weight:800}',
+  '.btn.cmd::before{content:"";display:inline-block;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:8px solid #fff;margin-right:8px;animation:g-blink 1s steps(1) infinite}',
+  '@media (prefers-reduced-motion:reduce){.g-in,.g-trk,.g-ic,.g-ring,.g-vs,.btn.cmd::before{animation:none!important}.g-tag{animation:none;opacity:1}.g-dim{animation:none!important;opacity:.55}}',
+
+  // ===== 一覧ページ（トップ・ブランド別・製法別・読みもの）のゲーム調 =====
+  // 見出しはドット文字＋四角マーカー、行にはランクバッジ、カードは影つきの枠にする。
+  '.sh{border-bottom:2px solid var(--ink)}',
+  '.sh h2{font-family:"DotGothic16","Zen Kaku Gothic New",sans-serif;font-weight:400;font-size:17px;letter-spacing:.1em;display:flex;align-items:center;gap:8px;white-space:nowrap}',
+  '.sh span{text-align:right;line-height:1.5;padding-left:10px}',
+  '.sh h2::before{content:"";width:10px;height:10px;background:var(--acc);border:2px solid var(--ink);flex:none}',
+  '.rt{display:inline-flex;align-items:center;justify-content:center;flex:none;width:22px;height:22px;margin-right:7px;vertical-align:middle;border:2px solid var(--ink);font-family:"Archivo",sans-serif;font-weight:900;font-size:13px;line-height:1;color:#fff}',
+  '.rt.tier-S{color:var(--ink)}',
+  '.lrow.first .rname a{background:linear-gradient(transparent 62%,rgba(255,199,44,.55) 62%)}',
+  '.lrow .pkg{border:2px solid var(--ink)}',
+  '.tierlgl{font-size:10px;color:var(--sub);line-height:1.7;margin:-8px 0 4px}',
+  '.read{border:2px solid var(--ink);border-left:2px solid var(--ink);border-radius:0;box-shadow:4px 4px 0 var(--ink);margin:14px 4px 0 0}',
+  '.read:hover{border-color:var(--ink);box-shadow:2px 2px 0 var(--ink);transform:translate(2px,2px)}',
+  '.chip,.sb,.more{border:2px solid var(--ink);border-radius:0}',
+  '.chip{border-color:var(--ink)}',
+  '.chip:hover{background:#FFE9A8}',
+  '.chip.on:hover{background:var(--ink)}'
 ].join('\n');
 
 /**
@@ -635,6 +761,141 @@ function relatedArticles_(product, articlesByHref) {
 }
 
 /**
+ * ゲーム風ラベル（DotGothic16）で使う文字。Google Fonts に使う文字だけを
+ * 渡して軽量化する。ラベルを増やしたら、ここにも文字を足すこと。
+ */
+const PIXEL_FONT_TEXT = 'ステータスパラメータランキング戦コマンドRANKこのページあいて判定1杯あたり(タンパク質20g換算)食数容量入数勝更新月日0123456789:/- 一覧位全商品読みものコスパウダリクブから探製法す';
+
+/**
+ * 1杯あたりの値段（タンパク質20g換算）からランクを決める。
+ * 基準は画面にも書く。ドリンクもパウダー換算した値で同じ基準を使う。
+ */
+const TIER_LEGEND = 'ランクの基準(タンパク質20g換算の1杯あたり): S 150円以下 ／ A 200円以下 ／ B 250円以下 ／ C 251円以上';
+
+function tierOf_(value) {
+  if (value === null || value === undefined || !isFinite(value)) return null;
+  if (value <= 150) return 'S';
+  if (value <= 200) return 'A';
+  if (value <= 250) return 'B';
+  return 'C';
+}
+
+/** 一覧行に出すランクの四角バッジ。値が取れない行には出さない。 */
+function rowTierHtml_(e) {
+  const v = (e.product && e.product.form === 'RTD') ? e.per20g : e.unitValue;
+  const t = tierOf_(Number(v));
+  return t ? '<span class="rt tier-' + t + '" title="ランク' + t + '">' + t + '</span>' : '';
+}
+
+/** 10マスのバー1本。n は 0〜10。 */
+function pmHtml_(label, n, valueText, note) {
+  const filled = Math.max(0, Math.min(10, Math.round(n)));
+  let cells = '';
+  for (let i = 0; i < 10; i++) {
+    cells += '<i' + (i < filled ? ' class="on"' : '') + '></i>';
+  }
+  return '<div class="pm"><div class="l"><em>' + esc_(label) + '</em><div class="cells">' + cells + '</div>' +
+    '<b>' + esc_(valueText) + '</b></div>' + (note ? '<div class="nt">' + esc_(note) + '</div>' : '') + '</div>';
+}
+
+/**
+ * ランキング戦（VS表示）。パッケージがぶつかって勝ち負けが付く動きをループする。
+ * 左がこのページの商品、右が相手。thisWins が true ならこのページが勝つ。
+ * 勝敗は1杯あたり（タンパク質20g換算）の安さで決める。
+ */
+function vsBlockHtml_(product, price, thisCompare, sizeLabel, rival, thisWins) {
+  function nm(p) { return [p.series, p.flavor].filter(Boolean).join(' ') || p.brand || ''; }
+  function sz(p) { return p.capacity ? comma_(p.capacity) + (p.form === 'RTD' ? 'ml' : 'g') : ''; }
+
+  const rivalCompare = rival.compareValue;
+  const diff = Math.round(Math.abs(thisCompare - rivalCompare));
+  const rivalSize = sz(rival);
+  const rivalName = nm(rival);
+  const thisName = nm(product);
+
+  const lSide = thisWins ? 'g-win' : 'g-lose';
+  const rSide = thisWins ? 'g-lose' : 'g-win';
+
+  function tag(win) {
+    return '<div class="g-tag ' + (win ? 'w' : 'l') + '">' + (win ? 'WIN!' : 'LOSE') + '</div>';
+  }
+
+  const arena = [
+    '<div class="g-arena"><div class="g-in">',
+    '<div class="g-cap">判定: 1杯あたり(タンパク質20g換算)</div>',
+    '<div class="g-floor"></div>',
+    '<div class="g-trk g-trk-l ' + lSide + '"><div class="g-hold">' + tag(thisWins) +
+      '<div class="g-ic">' + pkgBlock_(product, 300, '') + '<div class="g-dim"></div></div></div></div>',
+    '<div class="g-trk g-trk-r ' + rSide + '"><div class="g-hold">' + tag(!thisWins) +
+      '<div class="g-ic">' + pkgBlock_(rival, 200, '') + '<div class="g-dim"></div></div></div></div>',
+    '<div class="g-ring"></div><div class="g-vs">VS</div>',
+    '</div></div>'
+  ].join('');
+
+  const names = [
+    '<div class="vsn">',
+    '<div><span class="tt">このページ</span><span class="nm">' + esc_(thisName + (sizeLabel ? ' ' + sizeLabel : '')) + '</span>' +
+      '<span class="bd">' + esc_(product.maker || product.brand || '') + '</span></div>',
+    '<div><span class="tt">あいて</span><a class="nm" href="' + esc_(rival.href) + '">' +
+      esc_(rivalName + (rivalSize ? ' ' + rivalSize : '')) + '</a>' +
+      '<span class="bd">' + esc_(rival.maker || rival.brand || '') + '</span></div>',
+    '</div>'
+  ].join('');
+
+  const win = '<span class="wm">勝</span>';
+  function money(v) { return comma_(v) + '<small>円</small>'; }
+  // 1杯あたりは小数1桁まで出す（226.9円を227円に丸めると、僅差の勝負が分からなくなる）。
+  function cup(v) { return (Math.round(v * 10) / 10) + '<small>円</small>'; }
+  // 判定文では、ブランドが違えばブランド名、同じなら味の名前で呼ぶ。
+  const rivalShort = (rival.brand && rival.brand !== product.brand) ? rival.brand : (rival.flavor || rival.series || rival.brand || '');
+
+  const rows = [];
+  rows.push(
+    '<div class="vsr f">' +
+    '<div class="' + (thisWins ? 'wn' : '') + '">' + cup(thisCompare) + (thisWins ? win : '') + '</div>' +
+    '<div class="lb">1杯あたり<br>(20g換算)</div>' +
+    '<div class="' + (thisWins ? '' : 'wn') + '">' + cup(rivalCompare) + (thisWins ? '' : win) + '</div>' +
+    '</div>'
+  );
+
+  let bagLine = '';
+  if (price && rival.price !== '' && rival.price !== null && rival.price !== undefined) {
+    const thisCheaperBag = price.price < rival.price;
+    const bagTie = price.price === rival.price;
+    rows.push(
+      '<div class="vsr">' +
+      '<div class="' + (!bagTie && thisCheaperBag ? 'wn' : '') + '">' + money(price.price) + (!bagTie && thisCheaperBag ? win : '') + '</div>' +
+      '<div class="lb">楽天の最安<br>(1袋)</div>' +
+      '<div class="' + (!bagTie && !thisCheaperBag ? 'wn' : '') + '">' + money(rival.price) + (!bagTie && !thisCheaperBag ? win : '') + '</div>' +
+      '</div>'
+    );
+    if (!bagTie && thisCheaperBag !== thisWins) {
+      bagLine = ' 1袋の値段なら' + (thisCheaperBag ? 'このページ' : esc_(rivalShort)) + 'の方が安い。';
+    }
+  }
+
+  if (sizeLabel && rivalSize) {
+    rows.push(
+      '<div class="vsr"><div>' + esc_(sizeLabel) + '</div><div class="lb">容量</div><div>' + esc_(rivalSize) + '</div></div>'
+    );
+  }
+
+  const verdict = diff > 0
+    ? '1杯あたりは' + (thisWins ? 'このページ' : esc_(rivalShort)) + 'が <b>' + diff + '</b> 円安い。' + bagLine
+    : '1杯あたりはほぼ同じ値段。' + bagLine;
+
+  return [
+    '<div class="gh"><span>ランキング戦</span><i></i></div>',
+    '<div class="win" style="margin-bottom:30px">',
+    arena,
+    names,
+    rows.join(''),
+    '<div class="vsf">' + verdict + '</div>',
+    '</div>'
+  ].join('\n');
+}
+
+/**
  * 商品ページのHTMLを組み立てる。
  *
  * @param {Object} product 商品マスタ1行
@@ -694,7 +955,7 @@ function buildItemHtml_(product, price, history, ctx, articlesByHref) {
       '<div class="s2">' + esc_(postage + qty) + '</div>',
       '<div class="s2">' + esc_(price.shopName || '') + '</div></div>',
       '<div class="pr"><span class="v n">' + comma_(price.price) + '</span><span class="u">円</span></div>',
-      '<a class="btn acc" href="' + esc_(price.url) + '" target="_blank" rel="nofollow noopener"' +
+      '<a class="btn acc cmd" href="' + esc_(price.url) + '" target="_blank" rel="nofollow noopener"' +
         ' onclick="gtag(\'event\',\'affiliate_click\',{shop:\'rakuten\',item_id:\'' + esc_(product.productId) + '\'})">見る</a>',
       '</div>',
       '<p class="note">Amazon・Yahoo!ショッピングの価格は準備中です。</p>'
@@ -778,6 +1039,77 @@ function buildItemHtml_(product, price, history, ctx, articlesByHref) {
     }
   }) : '';
 
+  // ===== 図鑑風ステータス画面 =====
+  const compareNow = unitValue === null ? null
+    : (isRtd ? ((ctx.per20g !== null && ctx.per20g !== undefined) ? ctx.per20g : null) : unitValue);
+  const tier = tierOf_(compareNow);
+
+  const tagChips = (product.tags || []).slice(0, 5).map(function (t, i) {
+    return '<span class="tchip tc' + (i % 4) + '">' + esc_(t) + '</span>';
+  }).join('');
+
+  const params = [];
+
+  if (unitValue !== null && ctx.minPer20g !== null && ctx.maxPer20g !== null && ctx.maxPer20g > ctx.minPer20g) {
+    const ratio = Math.max(0, Math.min(1, (unitValue - ctx.minPer20g) / (ctx.maxPer20g - ctx.minPer20g)));
+    const n = Math.round((1 - ratio) * 10);
+    params.push(pmHtml_(
+      'コスパ', n, n + '/10',
+      (isRtd ? '1本' : '1杯') + unitValue + '円。最安' + ctx.minPer20g + '円〜最高' + ctx.maxPer20g + '円の範囲での位置'
+    ));
+  }
+
+  if (!isRtd && product.servingSize && product.proteinPerServing) {
+    const pct = product.proteinPerServing / product.servingSize * 100;
+    params.push(pmHtml_(
+      'タンパク質含有率', pct / 10, Math.round(pct / 10) + '/10',
+      '1食' + product.servingSize + 'g中' + product.proteinPerServing + 'g(' + Math.round(pct) + '%)'
+    ));
+  }
+
+  const tileList = [];
+
+  if (isRtd) {
+    if (product.proteinPerServing) tileList.push(['タンパク質', product.proteinPerServing + '<small>g</small>']);
+    if (product.capacity) tileList.push(['容量', comma_(product.capacity) + '<small>ml</small>']);
+    if (price && price.quantity) tileList.push(['入数', price.quantity + '<small>本</small>']);
+  } else {
+    if (product.servingSize) tileList.push(['1食', product.servingSize + '<small>g</small>']);
+    if (product.proteinPerServing) tileList.push(['タンパク質', product.proteinPerServing + '<small>g</small>']);
+    if (servings) tileList.push(['食数', '約' + servings + '<small>食</small>']);
+  }
+
+  const tiles = tileList.length ? '<div class="tiles" style="grid-template-columns:repeat(' + tileList.length + ',minmax(0,1fr))">' +
+    tileList.map(function (t) {
+      return '<div class="tile"><span>' + t[0] + '</span><b>' + t[1] + '</b></div>';
+    }).join('') + '</div>' : '';
+
+  const statusBody = unitValue === null
+    ? '<p class="nodata" style="margin-top:20px">価格を取得できていないため、1杯あたりの値段は表示できません。</p>'
+    : [
+      '<div class="tierrow">',
+      tier ? '<div class="tier tier-' + tier + '"><span>RANK</span><b>' + tier + '</b></div>' : '',
+      '<div class="tierpr">',
+      '<div class="big"><span class="n">' + unitValue + '</span><span class="u">' + (isRtd ? '円 ／ 1本あたり' : '円 ／ 1杯あたり') + '</span></div>',
+      ctx.rank ? '<div class="rk3">' + esc_(product.form) + ctx.total + '商品中 <b>' + ctx.rank + '</b>位' + rankArrowHtml_(ctx.rankChange) + '</div>' : '',
+      (isRtd && ctx.per20g) ? '<div class="rk4">パウダー換算 1杯 ' + Math.round(ctx.per20g) + '円' +
+        (ctx.rankPer20g ? ' ／ ' + ctx.totalPer20g + '商品中 ' + ctx.rankPer20g + '位' + rankArrowHtml_(ctx.rankPer20gChange) : '') + '</div>' : '',
+      (ctx.minPer20g !== null && ctx.maxPer20g !== null) ? '<div class="rk4">いちばん安い ' + ctx.minPer20g + '円 ／ いちばん高い ' + ctx.maxPer20g + '円</div>' : '',
+      '</div>',
+      '</div>',
+      tier ? '<div class="tierlg">' + esc_(TIER_LEGEND) + '</div>' : '',
+      params.length ? '<div class="pmh"><span>パラメータ</span><i></i></div>' + params.join('') : '',
+      tiles
+    ].filter(Boolean).join('\n');
+
+  // ランキング戦の相手。自分より安いものがあれば、いちばん近い安いものに負け、
+  // 最安なら、すぐ上の高いものに勝つ。
+  const hasCheaper = !!(ctx.cheaper && ctx.cheaper.length);
+  const rival = hasCheaper ? ctx.cheaper[ctx.cheaper.length - 1] : (ctx.nextUp || null);
+  const vsHtml = (rival && compareNow !== null && rival.compareValue !== null && rival.compareValue !== undefined)
+    ? vsBlockHtml_(product, price, compareNow, sizeLabel, rival, !hasCheaper)
+    : '';
+
   return [
     htmlHead_(fullName + '｜プロテイン図鑑', description, product.canonical || '', ogImage),
     '<div class="wrap">',
@@ -787,56 +1119,23 @@ function buildItemHtml_(product, price, history, ctx, articlesByHref) {
     '</div>',
     '<div class="crumb">' + esc_(crumb) + '</div>',
 
-    '<div class="phero">',
-    '<div class="grid">',
+    '<div class="win">',
+    '<div class="win-bar"><span>ステータス</span><small>' + esc_(ctx.updatedLabel) + '</small></div>',
+    '<div class="win-body">',
+    '<div class="pst">',
     pkgBlock_(product, 300, ''),
     '<div>',
     '<h1>' + esc_(name) + (sizeLabel ? '<br>' + esc_(sizeLabel) : '') + '</h1>',
     '<div class="spec">' + esc_(specLines.join(' ／ ')) +
       (spec2.length ? '<br>' + esc_(spec2.join(' ／ ')) : '') + '</div>',
-    tags ? '<div class="tags">' + tags + '</div>' : '',
+    '</div>',
+    '</div>',
+    tagChips ? '<div class="tchips">' + tagChips + '</div>' : '',
+    statusBody,
     '</div>',
     '</div>',
 
-    unitValue === null
-      ? '<p class="nodata" style="margin-top:20px">価格を取得できていないため、1杯あたりの値段は表示できません。</p>'
-      : (isRtd ? [
-        // ドリンクは「1本で何g摂れるか」と「1本いくらか」を同じ大きさで並べる。
-        // どちらが大事かは人によって違うので、どちらも主役にする。
-        '<div class="duo">',
-        product.proteinPerServing ? [
-          '<div class="cell">',
-          '<div class="v n">' + product.proteinPerServing + '</div>',
-          '<div class="lab"><span class="u">g</span>',
-          '<span class="s">タンパク質 / 1本</span></div>',
-          '</div>'
-        ].join('\n') : '',
-        '<div class="cell">',
-        '<div class="v n">' + unitValue + '</div>',
-        '<div class="lab"><span class="u">円</span>',
-        '<span class="s">1本あたり</span></div>',
-        '</div>',
-        '</div>',
-        ctx.per20g ? '<div class="per20">パウダー換算 1杯 <b>' + Math.round(ctx.per20g) + '</b>円</div>' : '',
-        ctx.rank ? '<div class="per20">ドリンク' + ctx.total + '商品中 <b>' + ctx.rank + '</b>位（1本あたりの安い順）' +
-          rankArrowHtml_(ctx.rankChange) + '</div>' : '',
-        // 1本あたりの順位だけだと、下の「これより安いもの」と食い違って見える。
-        // 換算後の順位も並べて、どちらのものさしで何位かを分かるようにする。
-        ctx.rankPer20g ? '<div class="per20">' + ctx.totalPer20g + '商品中 <b>' + ctx.rankPer20g +
-          '</b>位（タンパク質20gあたりの安い順）' + rankArrowHtml_(ctx.rankPer20gChange) + '</div>' : '',
-        bar
-      ].filter(Boolean).join('\n') : [
-        '<div class="figure">',
-        '<div class="big n">' + unitValue + '</div>',
-        '<div class="side">',
-        '<div class="u">' + unitLabel + '</div>',
-        ctx.rank ? '<div class="rk2">' + esc_(product.form) + ctx.total + '商品中 <span class="n">' + ctx.rank + '</span>位' +
-          rankArrowHtml_(ctx.rankChange) + '</div>' : '',
-        '</div>',
-        '</div>',
-        bar
-      ].join('\n')),
-    '</div>',
+    vsHtml,
 
     product.experience ? [
       '<div class="exp">',
@@ -953,7 +1252,7 @@ function buildIndexHtml_(entries, ctx) {
         pkgBlock_(p, 200, e.href),
         '<div>',
         '<div class="rname"><a href="' + esc_(e.href) + '">' + esc_(name) + '</a></div>',
-        '<div class="rbrand">' + esc_([p.maker, size, p.method].filter(Boolean).join(' ／ ')) + '</div>',
+        '<div class="rbrand">' + rowTierHtml_(e) + esc_([p.maker, size, p.method].filter(Boolean).join(' ／ ')) + '</div>',
         p.experience ? '<div class="rbrand" style="color:#1A3FCC">飲んでみた記録あり</div>' : '',
         '<div class="pl"><div>',
         '<div class="cup"><span class="v n">' + e.unitValue + '</span><span class="u">' + unitLabel + '</span></div>',
@@ -1014,6 +1313,7 @@ function buildIndexHtml_(entries, ctx) {
     '<p class="lead">同じタンパク質20gを摂るのに、いくらかかるか。' +
       '容量も1食分の量も違う商品を、同じものさしで並べています。</p>',
     '<p class="auto">価格は毎日5〜6時に楽天市場から取得しています。</p>',
+    '<p class="tierlgl">' + esc_(TIER_LEGEND) + '</p>',
 
     // 読みものはトップに最新3本だけ出す。
     // 記事が増えるほど価格ランキングが下へ押し下げられ、
@@ -1315,7 +1615,7 @@ function renderRankRow_(e, index, unitLabel) {
     pkgBlock_(p, 200, e.href),
     '<div>',
     '<div class="rname"><a href="' + esc_(e.href) + '">' + esc_(name) + '</a></div>',
-    '<div class="rbrand">' + esc_([p.maker, size, p.method].filter(Boolean).join(' ／ ')) + '</div>',
+    '<div class="rbrand">' + rowTierHtml_(e) + esc_([p.maker, size, p.method].filter(Boolean).join(' ／ ')) + '</div>',
     p.experience ? '<div class="rbrand" style="color:#1A3FCC">飲んでみた記録あり</div>' : '',
     '<div class="pl"><div>',
     '<div class="cup"><span class="v n">' + e.unitValue + '</span><span class="u">' + unitLabel + '</span></div>',
@@ -1480,6 +1780,7 @@ function buildBrandHtml_(brand, entries, ctx) {
     '<p class="lead">' + esc_(brand.name) + 'の商品を、タンパク質20gを摂るのにいくらかかるかで並べています。' +
       '容量や1食分の量が違っても、同じものさしで比べられます。</p>',
     '<p class="auto">価格は毎日5〜6時に楽天市場から取得しています。</p>',
+    '<p class="tierlgl">' + esc_(TIER_LEGEND) + '</p>',
 
     renderFormSections_(entries),
 
@@ -1525,6 +1826,7 @@ function buildMethodHtml_(method, entries, ctx) {
     '<h1 style="font-size:22px;font-weight:900;line-height:1.4">' + esc_(title) + '</h1>',
     '<p class="lead">製法が' + esc_(method.name) + 'の商品を、タンパク質20gあたりの価格で並べています。</p>',
     '<p class="auto">価格は毎日5〜6時に楽天市場から取得しています。</p>',
+    '<p class="tierlgl">' + esc_(TIER_LEGEND) + '</p>',
 
     renderFormSections_(entries),
 
