@@ -5065,3 +5065,110 @@ function dumpBuyingPlaceArticle() {
   Logger.log(out || '該当する記事が見つかりませんでした。');
   return out;
 }
+
+
+/**
+ * 「プロテイン値上げ」の記事を書くための、価格ログの集計。
+ * 価格ログを読むだけで、シートにも商品マスタにも一切書き込まない。
+ *
+ * 見るもの:
+ *   1. 価格ログの期間（最初と最後の日付、記録のある日数）
+ *   2. 商品ごとの、最初の日と最新の日の価格と変化率
+ *      （1日に複数行あるときは、その日の最後の1行を使う）
+ *   3. 全体の動き（パウダーの20gあたりの中央値を、最初の日と最新の日で比べる）
+ *
+ * 注意: 価格ログには「その日に採用した1件」しか入らない。ショップが
+ * 変わった商品は、値上げではなく店の入れ替わりで価格が動いている可能性が
+ * あるので、「ショップ変更あり」と表示する。記事に使うときは、変更なしの
+ * 商品だけを根拠にすること。
+ */
+function summarizePriceTrend() {
+  const history = readPriceHistory_();
+  const products = readMasterFull_().filter(function (p) { return p.status === '公開'; });
+  const tz = 'Asia/Tokyo';
+
+  function day(at) { return Utilities.formatDate(at, tz, 'yyyy-MM-dd'); }
+  function pct(a, b) { return a ? Math.round((b - a) / a * 1000) / 10 : null; }
+  function median(list) {
+    if (!list.length) return null;
+    const s = list.slice().sort(function (x, y) { return x - y; });
+    const m = Math.floor(s.length / 2);
+    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  }
+
+  // 商品ごとに「1日1件（その日の最後）」へ畳む。
+  const perProduct = [];
+  const allDays = {};
+
+  products.forEach(function (p) {
+    const rows = (history[p.productId] || []).filter(function (r) { return r.at instanceof Date; });
+    if (!rows.length) return;
+
+    const byDay = {};
+    rows.forEach(function (r) { byDay[day(r.at)] = r; });
+    const days = Object.keys(byDay).sort();
+    days.forEach(function (d) { allDays[d] = true; });
+
+    const first = byDay[days[0]];
+    const last = byDay[days[days.length - 1]];
+    const shops = {};
+    days.forEach(function (d) { shops[byDay[d].shopName] = true; });
+
+    perProduct.push({
+      p: p,
+      name: [p.brand, p.series, p.flavor].filter(Boolean).join(' ') + ' ' + (p.capacity || '') + (p.form === 'RTD' ? 'ml' : 'g'),
+      days: days.length,
+      firstDay: days[0],
+      lastDay: days[days.length - 1],
+      first: first,
+      last: last,
+      shopChanged: Object.keys(shops).length > 1
+    });
+  });
+
+  const dayList = Object.keys(allDays).sort();
+  const out = [];
+  out.push('価格ログの期間: ' + (dayList[0] || '(なし)') + ' 〜 ' + (dayList[dayList.length - 1] || '(なし)') +
+    ' / 記録のある日数: ' + dayList.length + ' / 商品数: ' + perProduct.length);
+  out.push('');
+  out.push('--- 商品ごと（最初の日 → 最新の日） ---');
+
+  perProduct.sort(function (a, b) {
+    return Math.abs(pct(b.first.price, b.last.price) || 0) - Math.abs(pct(a.first.price, a.last.price) || 0);
+  });
+
+  perProduct.forEach(function (x) {
+    const priceChange = pct(x.first.price, x.last.price);
+    const per20Change = pct(x.first.pricePer20g, x.last.pricePer20g);
+    out.push(
+      x.p.productId + ' | ' + x.name +
+      ' | 日数' + x.days + ' (' + x.firstDay + '→' + x.lastDay + ')' +
+      ' | 価格 ' + x.first.price + '→' + x.last.price + '円 (' + (priceChange === null ? '-' : priceChange + '%') + ')' +
+      ' | 20g ' + (x.first.pricePer20g || '-') + '→' + (x.last.pricePer20g || '-') + '円 (' + (per20Change === null ? '-' : per20Change + '%') + ')' +
+      (x.shopChanged ? ' | ※ショップ変更あり' : '')
+    );
+  });
+
+  // 全体の動き。ショップ変更のない商品だけ、パウダーに限って中央値を比べる。
+  const stable = perProduct.filter(function (x) {
+    return !x.shopChanged && x.days >= 2 && x.p.form !== 'RTD' && x.first.pricePer20g && x.last.pricePer20g;
+  });
+
+  out.push('');
+  out.push('--- 全体の動き（パウダー・ショップ変更なし・2日以上の記録がある ' + stable.length + ' 商品） ---');
+
+  if (stable.length) {
+    const m1 = median(stable.map(function (x) { return x.first.pricePer20g; }));
+    const m2 = median(stable.map(function (x) { return x.last.pricePer20g; }));
+    const up = stable.filter(function (x) { return x.last.pricePer20g > x.first.pricePer20g; }).length;
+    const down = stable.filter(function (x) { return x.last.pricePer20g < x.first.pricePer20g; }).length;
+    out.push('20gあたりの中央値: ' + Math.round(m1 * 10) / 10 + '円 → ' + Math.round(m2 * 10) / 10 + '円 (' + pct(m1, m2) + '%)');
+    out.push('値上がり ' + up + ' 商品 / 値下がり ' + down + ' 商品 / 変化なし ' + (stable.length - up - down) + ' 商品');
+  } else {
+    out.push('比較できる商品がありません（記録が1日分しかない、またはショップが変わっている）。');
+  }
+
+  // 1行ずつ出す（ログが長いと途中で切れることがあるため）。
+  out.forEach(function (line) { Logger.log(line); });
+  return out.join('\n');
+}
