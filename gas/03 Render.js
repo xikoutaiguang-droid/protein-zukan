@@ -454,6 +454,10 @@ const SITE_CSS = [
   '.art .cap{font-size:10.5px;color:var(--sub);margin:-6px 0 20px}',
   '.art hr{border:0;border-top:1px solid var(--hair);margin:34px 0}',
   '.embed{margin:26px 0}',
+  // 記事に貼るスクリーンショット（{{img:...}}）。幅は抑えて、縦長の画面でも本文を押し流さない。
+  '.shot{margin:26px 0}',
+  '.shot img{display:block;width:100%;max-width:360px;height:auto;margin:0 auto;border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink)}',
+  '.shot figcaption{font-size:10.5px;color:var(--sub);margin-top:12px;text-align:center;line-height:1.7}',
   '.embed .ttl{font-family:"Zen Kaku Gothic New";font-weight:900;font-size:12px;border-bottom:2px solid var(--ink);padding-bottom:7px;margin-bottom:2px}',
   '.prc{display:block;border:1px solid var(--hair);border-left:3px solid var(--sub);border-radius:2px;padding:17px 19px;margin:26px 0;background:#fff}',
   '.prc:hover{border-color:var(--ink)}',
